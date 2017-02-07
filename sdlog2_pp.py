@@ -175,7 +175,7 @@ class SDLog2Parser:
             m.close()
         for full_label in self.csv_columns:
             v = self.log_data[full_label]
-            g.create_dataset(full_label, data=v)
+            g.create_dataset(full_label, data=v, compression="lzf")
         g.close()
 
     
