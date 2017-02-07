@@ -1,6 +1,7 @@
-import pickle
+import cPickle as pickle
 import matplotlib.pyplot as plt
 import numpy as np
+from sdlog2_pp import SDLog2Parser
 
 with open('company_data.pkl', 'rb') as input:
 	parser = pickle.load(input)
