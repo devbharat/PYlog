@@ -420,42 +420,6 @@ def _main():
     parser.setDebugOut(debug_out)
     parser.setCorrectErrors(correct_errors)
 
-    parser2 = SDLog2Parser()
-    parser2.setCSVDelimiter(csv_delim)
-    parser2.setCSVNull(csv_null)
-    parser2.setMsgFilter(msg_filter)
-    parser2.setTimeMsg(time_msg)
-    parser2.setFileName(file_name)
-    parser2.setDebugOut(debug_out)
-    parser2.setCorrectErrors(correct_errors)
-
-    parser3 = SDLog2Parser()
-    parser3.setCSVDelimiter(csv_delim)
-    parser3.setCSVNull(csv_null)
-    parser3.setMsgFilter(msg_filter)
-    parser3.setTimeMsg(time_msg)
-    parser3.setFileName(file_name)
-    parser3.setDebugOut(debug_out)
-    parser3.setCorrectErrors(correct_errors)
-
-    parser4 = SDLog2Parser()
-    parser4.setCSVDelimiter(csv_delim)
-    parser4.setCSVNull(csv_null)
-    parser4.setMsgFilter(msg_filter)
-    parser4.setTimeMsg(time_msg)
-    parser4.setFileName(file_name)
-    parser4.setDebugOut(debug_out)
-    parser4.setCorrectErrors(correct_errors)
-
-    #p = multiprocessing.Pool(4)
-    #p.map(parser.process, fn)
-    #parser.process(fn)
-    #parser.process(fn)
-    par = [parser, parser2, parser3, parser4]
-    f = [fn, fn, fn, fn]
-    #pool = mp.ProcessingPool(4)
-    #pool.map(Pprocess, par, f)
-
     parser.process(fn)
     # Pickle it
     with open('company_data.pkl', 'wb') as output:
