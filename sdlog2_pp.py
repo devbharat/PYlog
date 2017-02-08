@@ -78,8 +78,6 @@ class SDLog2Parser:
         self.file = None
         self.k = True
 
-        print("***********************************")
-
         return
     
     def reset(self):
@@ -130,7 +128,7 @@ class SDLog2Parser:
         #f = open(fn, "rb")
         g = h5py.File('company_data.hdf5','w')
         with open(fn, "rb") as f:
-            m = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ) #File is open read-only
+            m = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ, offset=0) #File is open read-only
             bytes_read = 0
             while True:
                 chunk = m.read(self.BLOCK_SIZE)
@@ -375,7 +373,7 @@ def _main():
         return
     fn = sys.argv[1]
     debug_out = False
-    correct_errors = False
+    correct_errors = True
     msg_filter = []
     csv_null = ""
     csv_delim = ","
