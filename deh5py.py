@@ -4,17 +4,6 @@ import h5py
 import struct, sys
 
 def _main():
-	if len(sys.argv) < 2:
-		print("Usage: python deh5py.py <log.hdf5>\n")
-		return
-
-	fn = sys.argv[1]
-
-	M = h5py.File(fn)
-
-	for label in M.keys():
-		exec('%s = M["%s"][:]' % (label, label))
-
 	plt.figure(1)
 	plt.plot(TIME_StartTime, CTD1_reg, label='CTD1_reg')
 	plt.hold('on')
@@ -85,4 +74,14 @@ def _main():
 
 
 if __name__ == "__main__":
-    _main()
+	if len(sys.argv) < 2:
+		print("Usage: python deh5py.py <log.hdf5>\n")
+		sys.exit()
+
+	fn = sys.argv[1]
+	M = h5py.File(fn)
+
+	for label in M.keys():
+		exec('%s = M["%s"][:]' % (label, label))
+
+	_main()
