@@ -129,16 +129,36 @@ class sdlog2_pp:
         #filename = ntpath.basename(fn).split('.')[-2] + '.hdf5'
         #filename = fn.split('.')[-2] + '.hdf5'
         filename = os.path.splitext(fn)[0] + '.hdf5'
+        # check if file exists
+        if (os.path.isfile(filename)):
+            os.remove(filename)
+            print("Removed previous %s!" % filename)
         g = h5py.File(filename,'w')
+        index = 0;
+        precent_read = 0
+        p_percent_read = 0
         with open(fn, "rb") as f:
             m = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ, offset=0) #File is open read-only
             bytes_read = 0
+            size = m.size()
             while True:
                 chunk = m.read(self.BLOCK_SIZE)
                 if len(chunk) == 0:
                     break
                 self.buffer = self.buffer[self.ptr:] + chunk
                 self.ptr = 0
+
+                # Status update
+                index = index + self.BLOCK_SIZE
+                precent_read = int(index * 100.0 / size)
+                #sys.stdout.write('\ \r')
+                #sys.stdout.flush()
+                if (precent_read != p_percent_read):
+                    sys.stdout.write('Read %d \r' % precent_read)
+                    #print(precent_read)
+                    sys.stdout.flush()
+                    p_percent_read = precent_read
+
                 while self.bytesLeft() >= self.MSG_HEADER_LEN:
                     head1 = self.buffer[self.ptr]
                     head2 = self.buffer[self.ptr+1]
@@ -174,6 +194,7 @@ class sdlog2_pp:
                     self.updateLogData()
                     pass
             m.close()
+        print("Writing file %s!" % filename)
         for full_label in self.csv_columns:
             v = self.log_data[full_label]
             g.create_dataset(full_label, data=v, compression="lzf")
@@ -206,7 +227,8 @@ class sdlog2_pp:
             #print(self.csv_delim.join(self.csv_columns), file=self.file)
             pass
         else:
-            print(self.csv_delim.join(self.csv_columns))
+            #print(self.csv_delim.join(self.csv_columns))
+            pass
 
     def printCSVRow(self):
         s = []
