@@ -72,9 +72,9 @@ class sdlog2_pp:
         self.csv_delim = ","
         self.csv_null = ""
         self.msg_filter = []
-        self.time_msg = None
+        self.time_msg = 'TIME'
         self.debug_out = False
-        self.correct_errors = False
+        self.correct_errors = True
         self.file_name = None
         self.file = None
         self.k = True
@@ -132,7 +132,7 @@ class sdlog2_pp:
         # check if file exists
         if (os.path.isfile(filename)):
             os.remove(filename)
-            print("Removed previous %s!" % filename)
+            print("Removed previous %s" % filename)
         g = h5py.File(filename,'w')
         index = 0;
         precent_read = 0
@@ -141,6 +141,7 @@ class sdlog2_pp:
             m = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ, offset=0) #File is open read-only
             bytes_read = 0
             size = m.size()
+            print("Input Logfile %s: %d MB" % (os.path.basename(fn), int(size/1000000)))
             while True:
                 chunk = m.read(self.BLOCK_SIZE)
                 if len(chunk) == 0:
@@ -194,7 +195,7 @@ class sdlog2_pp:
                     self.updateLogData()
                     pass
             m.close()
-        print("Writing file %s!" % filename)
+        print("Writing file %s" % filename)
         for full_label in self.csv_columns:
             v = self.log_data[full_label]
             g.create_dataset(full_label, data=v, compression="lzf")

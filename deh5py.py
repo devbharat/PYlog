@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import h5py
-import struct, sys
+import struct, sys, os
+from PYlog import sdlog2_pp
 
 def _main():
 	plt.figure(1)
@@ -79,8 +80,16 @@ if __name__ == "__main__":
 		sys.exit()
 
 	fn = sys.argv[1]
-	M = h5py.File(fn)
+	datafilename = os.path.splitext(fn)[0] + '.hdf5'
+	logfilename = os.path.splitext(fn)[0] + '.px4log'
+	if (os.path.isfile(datafilename)):
+		pass
+	else:
+		parser = sdlog2_pp()
+		parser.process(logfilename)
 
+
+	M = h5py.File(datafilename)
 	for label in M.keys():
 		exec('%s = M["%s"][:]' % (label, label))
 
