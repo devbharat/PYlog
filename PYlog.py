@@ -39,7 +39,7 @@ else:
     def _parseCString(cstr):
         return str(cstr).split('\0')[0]
 
-class SDLog2Parser:    
+class sdlog2_pp:    
     def __init__(self):
         self.BLOCK_SIZE = 8192
         self.MSG_HEADER_LEN = 3
@@ -418,7 +418,7 @@ def _main():
 
     if csv_delim == "\\t":
         csv_delim = "\t"
-    parser = SDLog2Parser()
+    parser = sdlog2_pp()
     parser.setCSVDelimiter(csv_delim)
     parser.setCSVNull(csv_null)
     parser.setMsgFilter(msg_filter)
