@@ -4,9 +4,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import h5py
 import struct, sys, os
-from PYlog import sdlog2_pp
+from PYlog import sdlog2_pp 
 
 def _main():
+	"""
 	plt.figure(1)
 	plt.plot(TIME_StartTime, CTD1_reg, label='CTD1_reg')
 	plt.hold('on')
@@ -21,7 +22,6 @@ def _main():
 	plt.legend()
 	plt.show()
 
-	"""
 	print(M.keys())
 	plt.figure(1)
 	plt.plot(M["TIME_StartTime"][:], M["ACTR_fSat0"][:])
@@ -34,7 +34,6 @@ def _main():
 	plt.plot(M["TIME_StartTime"][:], M["FOMO_my"][:])
 	plt.grid('on')
 	plt.show()
-	"""
 
 	plt.figure(2)
 	#Plot pitch, pitch SP and longitudnal velocities
@@ -73,7 +72,8 @@ def _main():
 	plt.grid('on')
 	plt.legend()
 	plt.show()
-
+	"""
+	pass
 
 
 if __name__ == "__main__":
@@ -94,5 +94,23 @@ if __name__ == "__main__":
 	M = h5py.File(datafilename)
 	for label in M.keys():
 		exec('%s = M["%s"][:]' % (label, label))
+
+	# Shortcuts
+	t = TIME_StartTime / 1000000.0
+	yaw = MPCE_yaw
+	pitch = ATT_Pitch
+	pitch_sp = ATSP_PitchSP
+	t1 = MPCD_t1
+	t2 = MPCD_t2
+	t3 = MPCD_t3
+	fd0 = ACTR_fd0
+	fd1 = ACTR_fd1
+	fSat0 = ACTR_fSat0
+	fSat1 = ACTR_fSat1
+	navS = STAT_NavState
+	tx_b = MPCD_t1*np.cos(yaw) + MPCD_t2*np.sin(yaw)
+	vx_b = LPOS_VX*np.cos(MPCE_yaw) + LPOS_VY*np.sin(MPCE_yaw)
+	vx_sp_b = LPSP_VX*np.cos(MPCE_yaw) + LPSP_VY*np.sin(MPCE_yaw)
+	vex_b = MPCE_veX*np.cos(yaw) + MPCE_veY*np.sin(yaw)
 
 	_main()
