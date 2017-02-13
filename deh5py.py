@@ -81,36 +81,55 @@ if __name__ == "__main__":
 		print("Usage: python deh5py.py <log.hdf5>\n")
 		sys.exit()
 
-	fn = sys.argv[1]
-	datafilename = os.path.splitext(fn)[0] + '.hdf5'
-	logfilename = os.path.splitext(fn)[0] + '.px4log'
-	if (os.path.isfile(datafilename)):
-		pass
-	else:
-		parser = sdlog2_pp()
-		parser.process(logfilename)
-
+	if (os.path.isdir(sys.argv[1])):
+		# is directory, look for all files inside it
+		for root, dirs, files in os.walk(sys.argv[1]):
+			for file in files:
+				if file.endswith('.px4log'):
+					#print(os.path.join(root, file))
+					fn = os.path.join(root, file)
+					print('Processing file %s' % fn)
+					datafilename = os.path.splitext(fn)[0] + '.hdf5'
+					logfilename = os.path.splitext(fn)[0] + '.px4log'
+					if (os.path.isfile(datafilename)):
+						pass
+					else:
+						parser = sdlog2_pp()
+						parser.process(logfilename)
+	elif(os.path.isfile(sys.argv[1])):
+		fn = sys.argv[1]
+		datafilename = os.path.splitext(fn)[0] + '.hdf5'
+		logfilename = os.path.splitext(fn)[0] + '.px4log'
+		if (os.path.isfile(datafilename)):
+			pass
+		else:
+			parser = sdlog2_pp()
+			parser.process(logfilename)
 
 	M = h5py.File(datafilename)
 	for label in M.keys():
-		exec('%s = M["%s"][:]' % (label, label))
-
+		try:
+			exec('%s = M["%s"][:]' % (label, label))
+		except:
+			print('Error executing %s = M["%s"][:]' % (label, label))
 	# Shortcuts
-	t = TIME_StartTime / 1000000.0
-	yaw = MPCE_yaw
-	pitch = ATT_Pitch
-	pitch_sp = ATSP_PitchSP
-	t1 = MPCD_t1
-	t2 = MPCD_t2
-	t3 = MPCD_t3
-	fd0 = ACTR_fd0
-	fd1 = ACTR_fd1
-	fSat0 = ACTR_fSat0
-	fSat1 = ACTR_fSat1
-	navS = STAT_NavState
-	tx_b = MPCD_t1*np.cos(yaw) + MPCD_t2*np.sin(yaw)
-	vx_b = LPOS_VX*np.cos(MPCE_yaw) + LPOS_VY*np.sin(MPCE_yaw)
-	vx_sp_b = LPSP_VX*np.cos(MPCE_yaw) + LPSP_VY*np.sin(MPCE_yaw)
-	vex_b = MPCE_veX*np.cos(yaw) + MPCE_veY*np.sin(yaw)
-
+	try:
+		t = TIME_StartTime / 1000000.0
+		yaw = MPCE_yaw
+		pitch = ATT_Pitch
+		pitch_sp = ATSP_PitchSP
+		t1 = MPCD_t1
+		t2 = MPCD_t2
+		t3 = MPCD_t3
+		fd0 = ACTR_fd0
+		fd1 = ACTR_fd1
+		fSat0 = ACTR_fSat0
+		fSat1 = ACTR_fSat1
+		navS = STAT_NavState
+		tx_b = MPCD_t1*np.cos(yaw) + MPCD_t2*np.sin(yaw)
+		vx_b = LPOS_VX*np.cos(MPCE_yaw) + LPOS_VY*np.sin(MPCE_yaw)
+		vx_sp_b = LPSP_VX*np.cos(MPCE_yaw) + LPSP_VY*np.sin(MPCE_yaw)
+		vex_b = MPCE_veX*np.cos(yaw) + MPCE_veY*np.sin(yaw)
+	except:
+		pass
 	_main()
