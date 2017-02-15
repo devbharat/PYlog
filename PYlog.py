@@ -92,6 +92,7 @@ class sdlog2_pp:
         self.log_data = {}        # values for all columns
         self.csv_updated = False
         self.msg_filter_map = {}  # filter in form of map, with '*" expanded to full list of fields
+        self.params = {}
     
     def setCSVDelimiter(self, csv_delim):
         self.csv_delim = csv_delim
@@ -199,6 +200,9 @@ class sdlog2_pp:
         for full_label in self.csv_columns:
             v = self.log_data[full_label]
             g.create_dataset(full_label, data=v, compression="lzf")
+        # write params
+        for key in self.params:
+            g.create_dataset(key, data=self.params[key])
         g.close()
 
     
@@ -322,6 +326,9 @@ class sdlog2_pp:
                         #self.log_data[msg_name + "_" + label].append(data[i])
                         if self.time_msg != None and msg_name != self.time_msg:
                             self.csv_updated = True
+                # If we are parsing through PARM msg, write values to a file
+                if show_fields == ['Name', 'Value']:
+                    self.params[str(data[0])] = float(data[1])
                 if self.time_msg == None:
                     # self.printCSVRow()
                     self.updateLogData()

@@ -111,7 +111,10 @@ if __name__ == "__main__":
 		try:
 			exec('%s = M["%s"][:]' % (label, label))
 		except:
-			print('Error executing %s = M["%s"][:]' % (label, label))
+			try:
+				exec('%s = M["%s"].value' % (label, label))
+			except:
+				print('Error executing %s = M["%s"][:]' % (label, label))
 	# Shortcuts
 	try:
 		t = TIME_StartTime / 1000000.0
