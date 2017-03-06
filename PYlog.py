@@ -295,7 +295,6 @@ class sdlog2_pp:
         msg_length, msg_name, msg_format, msg_labels, msg_struct, msg_mults = msg_descr
         if not self.debug_out and self.time_msg != None and msg_name == self.time_msg and self.csv_updated:
             # self.printCSVRow()
-            self.updateLogData()
             self.csv_updated = False
         show_fields = self.filterMsg(msg_name)
         if (show_fields != None):
@@ -329,10 +328,7 @@ class sdlog2_pp:
                 # If we are parsing through PARM msg, write values to a file
                 if show_fields == ['Name', 'Value']:
                     self.params[str(data[0])] = float(data[1])
-                if self.time_msg == None:
-                    # self.printCSVRow()
-                    self.updateLogData()
-                    pass
+
         self.ptr += msg_length
 
 def Pprocess(_parser, fn):
