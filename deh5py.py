@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import h5py
 import struct, sys, os
-from PYlog import sdlog2_pp 
+from PYlog import sdlog2_pp
+import multiprocessing as mp
 
 def graph(data_y, legend_str=''):
 	plt.figure()
@@ -15,6 +16,9 @@ def graph(data_y, legend_str=''):
 		plt.legend([legend_str])
 	plt.show()
 
+def procS(file_name):
+	parser = sdlog2_pp()
+	parser.process(file_name)
 
 def _main():
 	"""
@@ -92,6 +96,9 @@ if __name__ == "__main__":
 		sys.exit()
 
 	if (os.path.isdir(sys.argv[1])):
+		datafilenameList = []
+		logfilenameList = []
+		processes = []
 		# is directory, look for all files inside it
 		for root, dirs, files in os.walk(sys.argv[1]):
 			for file in files:
@@ -104,8 +111,21 @@ if __name__ == "__main__":
 					if (os.path.isfile(datafilename)):
 						pass
 					else:
-						parser = sdlog2_pp()
-						parser.process(logfilename)
+						datafilenameList.append(datafilename)
+						logfilenameList.append(logfilename)
+						#procS(logfilename)
+		for i in range(len(logfilenameList)):
+			print("BANANAN   %s" % logfilenameList[i])
+			processes.append(mp.Process(target=procS, args=(logfilenameList[i],)))
+
+		# Run processes
+		for p in processes:
+		    p.start()
+
+		# Exit the completed processes
+		for p in processes:
+		    p.join()
+
 	elif(os.path.isfile(sys.argv[1])):
 		fn = sys.argv[1]
 		datafilename = os.path.splitext(fn)[0] + '.hdf5'
