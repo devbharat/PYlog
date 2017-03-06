@@ -258,8 +258,6 @@ class sdlog2_pp:
             v = self.csv_data[full_label]
             if v == None:
                 v = 0
-            else:
-                v = v
             self.log_data[full_label].append(v)
 
     def parseMsgDescr(self):
