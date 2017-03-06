@@ -6,6 +6,16 @@ import h5py
 import struct, sys, os
 from PYlog import sdlog2_pp 
 
+def graph(data_y, legend_str=''):
+	plt.figure()
+	plt.plot(t, data_y)
+	plt.grid(1)
+	plt.xlabel('Time in seconds')
+	if (legend_str != ''):
+		plt.legend([legend_str])
+	plt.show()
+
+
 def _main():
 	"""
 	plt.figure(1)
@@ -109,14 +119,15 @@ if __name__ == "__main__":
 	M = h5py.File(datafilename)
 	for label in M.keys():
 		try:
-			exec('%s = M["%s"][:]' % (label, label))
+			exec('%s = M["%s"][3:]' % (label, label))
 		except:
 			try:
 				exec('%s = M["%s"].value' % (label, label))
 			except:
-				print('Error executing %s = M["%s"][:]' % (label, label))
+				print('Error executing %s = M["%s"][3:]' % (label, label))
 	# Shortcuts
 	try:
+		global t
 		t = TIME_StartTime / 1000000.0
 		yaw = MPCE_yaw
 		pitch = ATT_Pitch
