@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import h5py
 import struct, sys, os
-from PYlog import sdlog2_pp
+import PYlog
+#from PYlog import sdlog2_pp
+
 import multiprocessing as mp
 
 def graph(data_y, legend_str=''):
@@ -17,7 +19,7 @@ def graph(data_y, legend_str=''):
 	plt.show()
 
 def procS(file_name):
-	parser = sdlog2_pp()
+	parser = PYlog.sdlog2_pp()
 	parser.process(file_name)
 
 def _main():
@@ -133,7 +135,7 @@ if __name__ == "__main__":
 		if (os.path.isfile(datafilename)):
 			pass
 		else:
-			parser = sdlog2_pp()
+			parser = PYlog.sdlog2_pp()
 			parser.process(logfilename)
 
 	M = h5py.File(datafilename)
