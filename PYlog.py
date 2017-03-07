@@ -12,7 +12,7 @@ Usage: python sdlog2_dump.py <log.bin> [-v] [-e] [-d delimiter] [-n null] [-m MS
     
     -v  Use plain debug output instead of CSV.
     
-	-e	Recover from errors.
+    -e    Recover from errors.
     
     -d  Use "delimiter" in CSV. Default is ",".
     
@@ -111,11 +111,11 @@ class sdlog2_pp:
         self.correct_errors = correct_errors
 
     def setFileName(self, file_name):
-    	self.file_name = file_name
-    	if file_name != None:
-    		self.file = open(file_name, 'w+')
-    	else:
-    		self.file = None
+        self.file_name = file_name
+        if file_name != None:
+            self.file = open(file_name, 'w+')
+        else:
+            self.file = None
 
     
     def process(self, fn):
@@ -328,64 +328,6 @@ class sdlog2_pp:
 
         self.ptr += msg_length
 
-def Pprocess(_parser, fn):
-    _parser.reset()
-    if _parser.debug_out:
-        # init msg_filter_map
-        for msg_name, show_fields in _parser.msg_filter:
-            _parser.msg_filter_map[msg_name] = show_fields
-    first_data_msg = True
-    #f = open(fn, "rb")
-    with open(fn, "rb") as f:
-        m = mmap.mmap(f.fileno(), 20000000, prot=mmap.PROT_READ) #File is open read-only
-        bytes_read = 0
-        while True:
-            chunk = m.read(_parser.BLOCK_SIZE)
-            if len(chunk) == 0:
-                break
-            _parser.buffer = _parser.buffer[_parser.ptr:] + chunk
-            _parser.ptr = 0
-            while _parser.bytesLeft() >= _parser.MSG_HEADER_LEN:
-                head1 = _parser.buffer[_parser.ptr]
-                head2 = _parser.buffer[_parser.ptr+1]
-                if (head1 != _parser.MSG_HEAD1 or head2 != _parser.MSG_HEAD2):
-                    if _parser.correct_errors:
-                        _parser.ptr += 1
-                        continue
-                    else:
-                        raise Exception("Invalid header at %i (0x%X): %02X %02X, must be %02X %02X" % (bytes_read + _parser.ptr, bytes_read + _parser.ptr, head1, head2, _parser.MSG_HEAD1, _parser.MSG_HEAD2))
-                msg_type = _parser.buffer[_parser.ptr+2]
-                if msg_type == _parser.MSG_TYPE_FORMAT:
-                    # parse FORMAT message
-                    if _parser.bytesLeft() < _parser.MSG_FORMAT_PACKET_LEN:
-                        break
-                    _parser.parseMsgDescr()
-                else:
-                    # parse data message
-                    msg_descr = _parser.msg_descrs[msg_type]
-                    if msg_descr == None:
-                        raise Exception("Unknown msg type: %i" % msg_type)
-                    msg_length = msg_descr[0]
-                    if _parser.bytesLeft() < msg_length:
-                        break
-                    if first_data_msg:
-                        # build CSV columns and init data map
-                        if not _parser.debug_out:
-                            _parser.initCSV()
-                        first_data_msg = False
-                    _parser.parseMsg(msg_descr)
-            bytes_read += _parser.ptr
-            if not _parser.debug_out and _parser.time_msg != None and _parser.csv_updated:
-                # _parser.printCSVRow()
-                self.updateLogData()
-                pass
-        m.close()
-
-    # Pickle it
-    with open('company_data.pkl', 'wb') as output:
-        pickle.dump(_parser, output, pickle.HIGHEST_PROTOCOL)
-
-
 def _main():
     if len(sys.argv) < 2:
         print("Usage: python sdlog2_dump.py <log.bin> [-v] [-e] [-d delimiter] [-n null] [-m MSG[.field1,field2,...]] [-t TIME_MSG_NAME]\n")
@@ -415,7 +357,7 @@ def _main():
             elif opt == "t":
                 time_msg = arg
             elif opt == "f":
-            	file_name = arg
+                file_name = arg
             elif opt == "m":
                 show_fields = "*"
                 a = arg.split("_")
