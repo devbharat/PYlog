@@ -183,7 +183,7 @@ class sdlog2_pp:
                         msg_name1 = msg_descr[1]
                         msg_labels1 = msg_descr[3]
                         msg_mults1 = msg_descr[5]
-                 
+
                         if (len(self.buffer) - self.ptr) < msg_length1:
                             break
                         if first_data_msg:
@@ -193,6 +193,7 @@ class sdlog2_pp:
                             first_data_msg = False
                         if not self.debug_out and self.time_msg != None and msg_name1 == self.time_msg and self.csv_updated:
                             # self.printCSVRow()
+                            self.updateLogData()
                             self.csv_updated = False
                         show_fields = self.filterMsg(msg_name1)
                         if (show_fields != None):
@@ -219,8 +220,8 @@ class sdlog2_pp:
                         self.ptr += msg_length1
                 bytes_read += self.ptr
                 if not self.debug_out and self.time_msg != None and self.csv_updated:
-                    #self.printCSVRow()
-                    self.updateLogData()
+                    # self.printCSVRow()
+                    # self.updateLogData()
                     pass
             m.close()
         print("Writing file %s" % filename)
