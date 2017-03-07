@@ -38,7 +38,7 @@ else:
 
 class sdlog2_pp:    
     def __init__(self):
-        self.BLOCK_SIZE = 8192
+        self.BLOCK_SIZE = 8192*100
         self.MSG_HEADER_LEN = 3
         self.MSG_HEAD1 = 0xA3
         self.MSG_HEAD2 = 0x95
@@ -159,7 +159,7 @@ class sdlog2_pp:
                     sys.stdout.flush()
                     p_percent_read = precent_read
 
-                while self.bytesLeft() >= self.MSG_HEADER_LEN:
+                while (len(self.buffer) - self.ptr) >= self.MSG_HEADER_LEN:
                     head1 = self.buffer[self.ptr]
                     head2 = self.buffer[self.ptr+1]
                     if (head1 != self.MSG_HEAD1 or head2 != self.MSG_HEAD2):
@@ -171,7 +171,7 @@ class sdlog2_pp:
                     msg_type = self.buffer[self.ptr+2]
                     if msg_type == self.MSG_TYPE_FORMAT:
                         # parse FORMAT message
-                        if self.bytesLeft() < self.MSG_FORMAT_PACKET_LEN:
+                        if (len(self.buffer) - self.ptr) < self.MSG_FORMAT_PACKET_LEN:
                             break
                         self.parseMsgDescr()
                     else:
@@ -180,7 +180,7 @@ class sdlog2_pp:
                         if msg_descr == None:
                             raise Exception("Unknown msg type: %i" % msg_type)
                         msg_length = msg_descr[0]
-                        if self.bytesLeft() < msg_length:
+                        if (len(self.buffer) - self.ptr) < msg_length:
                             break
                         if first_data_msg:
                             # build CSV columns and init data map
