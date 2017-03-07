@@ -193,7 +193,12 @@ class sdlog2_pp:
                             first_data_msg = False
                         if not self.debug_out and self.time_msg != None and msg_name1 == self.time_msg and self.csv_updated:
                             # self.printCSVRow()
-                            self.updateLogData()
+                            # self.updateLogData()
+                            for full_label in self.csv_columns:
+                                v = self.csv_data[full_label]
+                                if v == None:
+                                    v = 0
+                                self.log_data[full_label].append(v)
                             self.csv_updated = False
                         show_fields = self.filterMsg(msg_name1)
                         if (show_fields != None):
