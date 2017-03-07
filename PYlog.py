@@ -141,15 +141,21 @@ class sdlog2_pp:
             bytes_read = 0
             size = m.size()
             print("Input Logfile %s: %d MB" % (os.path.basename(fn), int(size/1000000)))
+            # local variable acces is faster than global 
+            _BUFF_ = self.buffer
+            _BLOCK_SIZE_ = self.BLOCK_SIZE
+            _PTR_ = self.ptr
+            _CSV_DATA_ = self.csv_data
+            _TIME_MSG_ = self.time_msg
             while True:
-                chunk = m.read(self.BLOCK_SIZE)
+                chunk = m.read(_BLOCK_SIZE_)
                 if len(chunk) == 0:
                     break
-                self.buffer = self.buffer[self.ptr:] + chunk
-                self.ptr = 0
+                _BUFF_ = _BUFF_[_PTR_:] + chunk
+                _PTR_ = 0
 
                 # Status update
-                index = index + self.BLOCK_SIZE
+                index = index + _BLOCK_SIZE_
                 precent_read = int(index * 100.0 / size)
                 #sys.stdout.write('\ \r')
                 #sys.stdout.flush()
@@ -159,21 +165,47 @@ class sdlog2_pp:
                     sys.stdout.flush()
                     p_percent_read = precent_read
 
-                while (len(self.buffer) - self.ptr) >= self.MSG_HEADER_LEN:
-                    head1 = self.buffer[self.ptr]
-                    head2 = self.buffer[self.ptr+1]
+                while (len(_BUFF_) - _PTR_) >= self.MSG_HEADER_LEN:
+                    head1 = _BUFF_[_PTR_]
+                    head2 = _BUFF_[_PTR_+1]
                     if (head1 != self.MSG_HEAD1 or head2 != self.MSG_HEAD2):
                         if self.correct_errors:
-                            self.ptr += 1
+                            _PTR_ += 1
                             continue
                         else:
-                            raise Exception("Invalid header at %i (0x%X): %02X %02X, must be %02X %02X" % (bytes_read + self.ptr, bytes_read + self.ptr, head1, head2, self.MSG_HEAD1, self.MSG_HEAD2))
-                    msg_type = self.buffer[self.ptr+2]
+                            raise Exception("Invalid header at %i (0x%X): %02X %02X, must be %02X %02X" % (bytes_read + _PTR_, bytes_read + _PTR_, head1, head2, self.MSG_HEAD1, self.MSG_HEAD2))
+                    msg_type = _BUFF_[_PTR_+2]
                     if msg_type == self.MSG_TYPE_FORMAT:
                         # parse FORMAT message
-                        if (len(self.buffer) - self.ptr) < self.MSG_FORMAT_PACKET_LEN:
+                        if (len(_BUFF_) - _PTR_) < self.MSG_FORMAT_PACKET_LEN:
                             break
-                        self.parseMsgDescr()
+                        #self.parseMsgDescr()
+                        if runningPython3:
+                            data = struct.unpack(self.MSG_FORMAT_STRUCT, _BUFF_[_PTR_ + 3 : _PTR_ + self.MSG_FORMAT_PACKET_LEN])
+                        else:
+                            data = struct.unpack(self.MSG_FORMAT_STRUCT, str(_BUFF_[_PTR_ + 3 : _PTR_ + self.MSG_FORMAT_PACKET_LEN]))
+                        msg_type1 = data[0]
+                        if msg_type1 != self.MSG_TYPE_FORMAT:
+                            msg_length1 = data[1]
+                            msg_name1 = _parseCString(data[2])
+                            msg_format1 = _parseCString(data[3])
+                            msg_labels1 = _parseCString(data[4]).split(",")
+                            # Convert msg_format to struct.unpack format string
+                            msg_struct1 = ""
+                            msg_mults1 = []
+                            for c in msg_format1:
+                                try:
+                                    f1 = self.FORMAT_TO_STRUCT[c]
+                                    msg_struct1 += f1[0]
+                                    msg_mults1.append(f1[1])
+                                except KeyError as e:
+                                    raise Exception("Unsupported format char: %s in message %s (%i)" % (c, msg_name1, msg_type1))
+                            msg_struct1 = "<" + msg_struct1   # force little-endian
+                            self.msg_structs[msg_name1] = struct.Struct(msg_struct1).unpack
+                            self.msg_descrs[msg_type1] = (msg_length1, msg_name1, msg_format1, msg_labels1, msg_struct1, msg_mults1)
+                            self.msg_labels[msg_name1] = msg_labels1
+                            self.msg_names.append(msg_name1)
+                            _PTR_ += self.MSG_FORMAT_PACKET_LEN
                     else:
                         # parse data message
                         msg_descr = self.msg_descrs[msg_type]
@@ -184,18 +216,18 @@ class sdlog2_pp:
                         msg_labels1 = msg_descr[3]
                         msg_mults1 = msg_descr[5]
 
-                        if (len(self.buffer) - self.ptr) < msg_length1:
+                        if (len(_BUFF_) - _PTR_) < msg_length1:
                             break
                         if first_data_msg:
                             # build CSV columns and init data map
                             if not self.debug_out:
                                 self.initCSV()
                             first_data_msg = False
-                        if not self.debug_out and self.time_msg != None and msg_name1 == self.time_msg and self.csv_updated:
+                        if not self.debug_out and _TIME_MSG_ != None and msg_name1 == _TIME_MSG_ and self.csv_updated:
                             # self.printCSVRow()
                             # self.updateLogData()
                             for full_label in self.csv_columns:
-                                v = self.csv_data[full_label]
+                                v = _CSV_DATA_[full_label]
                                 if v == None:
                                     v = 0
                                 self.log_data[full_label].append(v)
@@ -203,9 +235,9 @@ class sdlog2_pp:
                         show_fields = self.filterMsg(msg_name1)
                         if (show_fields != None):
                             if runningPython3:
-                                data = list(self.msg_structs[msg_name1](self.buffer[self.ptr+self.MSG_HEADER_LEN:self.ptr+msg_length1]))
+                                data = list(self.msg_structs[msg_name1](_BUFF_[_PTR_+self.MSG_HEADER_LEN:_PTR_+msg_length1]))
                             else:
-                                data = list(self.msg_structs[msg_name1](str(self.buffer[self.ptr+self.MSG_HEADER_LEN:self.ptr+msg_length1])))
+                                data = list(self.msg_structs[msg_name1](str(_BUFF_[_PTR_+self.MSG_HEADER_LEN:_PTR_+msg_length1])))
                             for i in range(len(data)):
                                 if type(data[i]) is str:
                                     data[i] = str(data[i]).split('\0')[0]
@@ -215,16 +247,16 @@ class sdlog2_pp:
 
                                 label = msg_labels1[i]
                                 if label in show_fields:
-                                    self.csv_data[msg_name1 + "_" + label] = data[i]
+                                    _CSV_DATA_[msg_name1 + "_" + label] = data[i]
                                     #self.log_data[msg_name + "_" + label].append(data[i])
-                                    if self.time_msg != None and msg_name1 != self.time_msg:
+                                    if _TIME_MSG_ != None and msg_name1 != _TIME_MSG_:
                                         self.csv_updated = True
                             # If we are parsing through PARM msg, write values to a file
                             if show_fields == ['Name', 'Value']:
                                 self.params[str(data[0])] = float(data[1])
-                        self.ptr += msg_length1
-                bytes_read += self.ptr
-                if not self.debug_out and self.time_msg != None and self.csv_updated:
+                        _PTR_ += msg_length1
+                bytes_read += _PTR_
+                if not self.debug_out and _TIME_MSG_ != None and self.csv_updated:
                     # self.printCSVRow()
                     # self.updateLogData()
                     pass
