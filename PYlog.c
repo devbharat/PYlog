@@ -1548,7 +1548,7 @@ static PyObject *__pyx_int_89;
 static PyObject *__pyx_int_128;
 static PyObject *__pyx_int_149;
 static PyObject *__pyx_int_163;
-static PyObject *__pyx_int_819200;
+static PyObject *__pyx_int_8192;
 static PyObject *__pyx_int_1000000;
 static PyObject *__pyx_int_50331888;
 static PyObject *__pyx_tuple__2;
@@ -1784,7 +1784,7 @@ static PyObject *__pyx_pf_5PYlog_2_parseCString(CYTHON_UNUSED PyObject *__pyx_se
  * 
  * class sdlog2_pp:
  *     def __init__(self):             # <<<<<<<<<<<<<<
- *         self.BLOCK_SIZE = 8192*100
+ *         self.BLOCK_SIZE = 8192
  *         self.MSG_HEADER_LEN = 3
  */
 
@@ -1811,15 +1811,15 @@ static PyObject *__pyx_pf_5PYlog_9sdlog2_pp___init__(CYTHON_UNUSED PyObject *__p
   /* "PYlog.py":41
  * class sdlog2_pp:
  *     def __init__(self):
- *         self.BLOCK_SIZE = 8192*100             # <<<<<<<<<<<<<<
+ *         self.BLOCK_SIZE = 8192             # <<<<<<<<<<<<<<
  *         self.MSG_HEADER_LEN = 3
  *         self.MSG_HEAD1 = 0xA3
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_BLOCK_SIZE, __pyx_int_819200) < 0) __PYX_ERR(0, 41, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_BLOCK_SIZE, __pyx_int_8192) < 0) __PYX_ERR(0, 41, __pyx_L1_error)
 
   /* "PYlog.py":42
  *     def __init__(self):
- *         self.BLOCK_SIZE = 8192*100
+ *         self.BLOCK_SIZE = 8192
  *         self.MSG_HEADER_LEN = 3             # <<<<<<<<<<<<<<
  *         self.MSG_HEAD1 = 0xA3
  *         self.MSG_HEAD2 = 0x95
@@ -1827,7 +1827,7 @@ static PyObject *__pyx_pf_5PYlog_9sdlog2_pp___init__(CYTHON_UNUSED PyObject *__p
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_MSG_HEADER_LEN, __pyx_int_3) < 0) __PYX_ERR(0, 42, __pyx_L1_error)
 
   /* "PYlog.py":43
- *         self.BLOCK_SIZE = 8192*100
+ *         self.BLOCK_SIZE = 8192
  *         self.MSG_HEADER_LEN = 3
  *         self.MSG_HEAD1 = 0xA3             # <<<<<<<<<<<<<<
  *         self.MSG_HEAD2 = 0x95
@@ -2153,7 +2153,7 @@ static PyObject *__pyx_pf_5PYlog_9sdlog2_pp___init__(CYTHON_UNUSED PyObject *__p
  * 
  * class sdlog2_pp:
  *     def __init__(self):             # <<<<<<<<<<<<<<
- *         self.BLOCK_SIZE = 8192*100
+ *         self.BLOCK_SIZE = 8192
  *         self.MSG_HEADER_LEN = 3
  */
 
@@ -9947,7 +9947,7 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  * class sdlog2_pp:
  *     def __init__(self):             # <<<<<<<<<<<<<<
- *         self.BLOCK_SIZE = 8192*100
+ *         self.BLOCK_SIZE = 8192
  *         self.MSG_HEADER_LEN = 3
  */
   __pyx_tuple__47 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__47)) __PYX_ERR(0, 40, __pyx_L1_error)
@@ -10142,7 +10142,7 @@ static int __Pyx_InitGlobals(void) {
   __pyx_int_128 = PyInt_FromLong(128); if (unlikely(!__pyx_int_128)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_149 = PyInt_FromLong(149); if (unlikely(!__pyx_int_149)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_163 = PyInt_FromLong(163); if (unlikely(!__pyx_int_163)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_int_819200 = PyInt_FromLong(819200L); if (unlikely(!__pyx_int_819200)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_8192 = PyInt_FromLong(8192); if (unlikely(!__pyx_int_8192)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_1000000 = PyInt_FromLong(1000000L); if (unlikely(!__pyx_int_1000000)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_50331888 = PyInt_FromLong(50331888L); if (unlikely(!__pyx_int_50331888)) __PYX_ERR(0, 1, __pyx_L1_error)
   return 0;
@@ -10405,7 +10405,7 @@ PyMODINIT_FUNC PyInit_PYlog(void)
  * 
  * class sdlog2_pp:             # <<<<<<<<<<<<<<
  *     def __init__(self):
- *         self.BLOCK_SIZE = 8192*100
+ *         self.BLOCK_SIZE = 8192
  */
   __pyx_t_1 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_sdlog2_pp, __pyx_n_s_sdlog2_pp, (PyObject *) NULL, __pyx_n_s_PYlog, (PyObject *) NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -10414,7 +10414,7 @@ PyMODINIT_FUNC PyInit_PYlog(void)
  * 
  * class sdlog2_pp:
  *     def __init__(self):             # <<<<<<<<<<<<<<
- *         self.BLOCK_SIZE = 8192*100
+ *         self.BLOCK_SIZE = 8192
  *         self.MSG_HEADER_LEN = 3
  */
   __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_5PYlog_9sdlog2_pp_1__init__, 0, __pyx_n_s_sdlog2_pp___init, NULL, __pyx_n_s_PYlog, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 40, __pyx_L1_error)
@@ -10583,7 +10583,7 @@ PyMODINIT_FUNC PyInit_PYlog(void)
  * 
  * class sdlog2_pp:             # <<<<<<<<<<<<<<
  *     def __init__(self):
- *         self.BLOCK_SIZE = 8192*100
+ *         self.BLOCK_SIZE = 8192
  */
   __pyx_t_2 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_sdlog2_pp, __pyx_empty_tuple, __pyx_t_1, NULL, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);

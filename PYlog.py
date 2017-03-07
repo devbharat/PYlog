@@ -38,7 +38,7 @@ else:
 
 class sdlog2_pp:    
     def __init__(self):
-        self.BLOCK_SIZE = 8192*100
+        self.BLOCK_SIZE = 8192
         self.MSG_HEADER_LEN = 3
         self.MSG_HEAD1 = 0xA3
         self.MSG_HEAD2 = 0x95
