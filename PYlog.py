@@ -187,7 +187,33 @@ class sdlog2_pp:
                             if not self.debug_out:
                                 self.initCSV()
                             first_data_msg = False
-                        self.parseMsg(msg_descr)
+                        msg_length1, msg_name1, msg_format1, msg_labels1, msg_struct1, msg_mults1 = msg_descr
+                        if not self.debug_out and self.time_msg != None and msg_name1 == self.time_msg and self.csv_updated:
+                            # self.printCSVRow()
+                            self.csv_updated = False
+                        show_fields = self.filterMsg(msg_name1)
+                        if (show_fields != None):
+                            if runningPython3:
+                                data = list(self.msg_structs[msg_name1](self.buffer[self.ptr+self.MSG_HEADER_LEN:self.ptr+msg_length1]))
+                            else:
+                                data = list(self.msg_structs[msg_name1](str(self.buffer[self.ptr+self.MSG_HEADER_LEN:self.ptr+msg_length1])))
+                            for i in range(len(data)):
+                                if type(data[i]) is str:
+                                    data[i] = str(data[i]).split('\0')[0]
+                                m1 = msg_mults1[i]
+                                if m1 != None:
+                                    data[i] = data[i] * m1
+
+                                label = msg_labels1[i]
+                                if label in show_fields:
+                                    self.csv_data[msg_name1 + "_" + label] = data[i]
+                                    #self.log_data[msg_name + "_" + label].append(data[i])
+                                    if self.time_msg != None and msg_name1 != self.time_msg:
+                                        self.csv_updated = True
+                            # If we are parsing through PARM msg, write values to a file
+                            if show_fields == ['Name', 'Value']:
+                                self.params[str(data[0])] = float(data[1])
+                        self.ptr += msg_length1
                 bytes_read += self.ptr
                 if not self.debug_out and self.time_msg != None and self.csv_updated:
                     #self.printCSVRow()
