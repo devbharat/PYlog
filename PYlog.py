@@ -179,15 +179,18 @@ class sdlog2_pp:
                         msg_descr = self.msg_descrs[msg_type]
                         if msg_descr == None:
                             raise Exception("Unknown msg type: %i" % msg_type)
-                        msg_length = msg_descr[0]
-                        if (len(self.buffer) - self.ptr) < msg_length:
+                        msg_length1 = msg_descr[0]
+                        msg_name1 = msg_descr[1]
+                        msg_labels1 = msg_descr[3]
+                        msg_mults1 = msg_descr[5]
+                 
+                        if (len(self.buffer) - self.ptr) < msg_length1:
                             break
                         if first_data_msg:
                             # build CSV columns and init data map
                             if not self.debug_out:
                                 self.initCSV()
                             first_data_msg = False
-                        msg_length1, msg_name1, msg_format1, msg_labels1, msg_struct1, msg_mults1 = msg_descr
                         if not self.debug_out and self.time_msg != None and msg_name1 == self.time_msg and self.csv_updated:
                             # self.printCSVRow()
                             self.csv_updated = False
@@ -228,10 +231,6 @@ class sdlog2_pp:
         for key in self.params:
             g.create_dataset(key, data=self.params[key])
         g.close()
-
-    
-    def bytesLeft(self):
-        return len(self.buffer) - self.ptr
     
     def filterMsg(self, msg_name):
         show_fields = "*"
@@ -258,22 +257,6 @@ class sdlog2_pp:
         else:
             #print(self.csv_delim.join(self.csv_columns))
             pass
-
-    def printCSVRow(self):
-        s = []
-        for full_label in self.csv_columns:
-            v = self.csv_data[full_label]
-            if v == None:
-                v = self.csv_null
-            else:
-                v = str(v)
-            s.append(v)
-
-        if self.file != None:
-            #print(self.csv_delim.join(s), file=self.file)
-            pass
-        else:
-            print(self.csv_delim.join(s))
 
     def updateLogData(self):
         for full_label in self.csv_columns:
@@ -313,46 +296,6 @@ class sdlog2_pp:
                     print("MSG FORMAT: type = %i, length = %i, name = %s, format = %s, labels = %s, struct = %s, mults = %s" % (
                                 msg_type, msg_length, msg_name, msg_format, str(msg_labels), msg_struct, msg_mults))
         self.ptr += self.MSG_FORMAT_PACKET_LEN
-    
-    def parseMsg(self, msg_descr):
-        msg_length, msg_name, msg_format, msg_labels, msg_struct, msg_mults = msg_descr
-        if not self.debug_out and self.time_msg != None and msg_name == self.time_msg and self.csv_updated:
-            # self.printCSVRow()
-            self.csv_updated = False
-        show_fields = self.filterMsg(msg_name)
-        if (show_fields != None):
-            if runningPython3:
-                data = list(self.msg_structs[msg_name](self.buffer[self.ptr+self.MSG_HEADER_LEN:self.ptr+msg_length]))
-            else:
-                data = list(self.msg_structs[msg_name](str(self.buffer[self.ptr+self.MSG_HEADER_LEN:self.ptr+msg_length])))
-            for i in range(len(data)):
-                if type(data[i]) is str:
-                    data[i] = _parseCString(data[i])
-                m = msg_mults[i]
-                # print(m)
-                if m != None:
-                    data[i] = data[i] * m
-            if self.debug_out:
-                s = []
-                for i in range(len(data)):
-                    label = msg_labels[i]
-                    if show_fields == "*" or label in show_fields:
-                        s.append(label + "=" + str(data[i]))
-                print("MSG %s: %s" % (msg_name, ", ".join(s)))
-            else:
-                # update CSV data buffer
-                for i in range(len(data)):
-                    label = msg_labels[i]
-                    if label in show_fields:
-                        self.csv_data[msg_name + "_" + label] = data[i]
-                        #self.log_data[msg_name + "_" + label].append(data[i])
-                        if self.time_msg != None and msg_name != self.time_msg:
-                            self.csv_updated = True
-                # If we are parsing through PARM msg, write values to a file
-                if show_fields == ['Name', 'Value']:
-                    self.params[str(data[0])] = float(data[1])
-
-        self.ptr += msg_length
 
 def _main():
     if len(sys.argv) < 2:
