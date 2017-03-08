@@ -146,6 +146,7 @@ class sdlog2_pp:
             _BLOCK_SIZE_ = self.BLOCK_SIZE
             _PTR_ = self.ptr
             _CSV_DATA_ = self.csv_data
+            _CSV_COLS_ = self.csv_columns
             _TIME_MSG_ = self.time_msg
             while True:
                 chunk = m.read(_BLOCK_SIZE_)
@@ -165,27 +166,27 @@ class sdlog2_pp:
                     sys.stdout.flush()
                     p_percent_read = precent_read
 
-                while (len(_BUFF_) - _PTR_) >= self.MSG_HEADER_LEN:
+                while (len(_BUFF_) - _PTR_) >= 3:
                     head1 = _BUFF_[_PTR_]
                     head2 = _BUFF_[_PTR_+1]
-                    if (head1 != self.MSG_HEAD1 or head2 != self.MSG_HEAD2):
+                    if (head1 != 0xA3 or head2 != 0x95):
                         if self.correct_errors:
                             _PTR_ += 1
                             continue
                         else:
                             raise Exception("Invalid header at %i (0x%X): %02X %02X, must be %02X %02X" % (bytes_read + _PTR_, bytes_read + _PTR_, head1, head2, self.MSG_HEAD1, self.MSG_HEAD2))
                     msg_type = _BUFF_[_PTR_+2]
-                    if msg_type == self.MSG_TYPE_FORMAT:
+                    if msg_type == 0x80:
                         # parse FORMAT message
-                        if (len(_BUFF_) - _PTR_) < self.MSG_FORMAT_PACKET_LEN:
+                        if (len(_BUFF_) - _PTR_) < 89:
                             break
                         #self.parseMsgDescr()
                         if runningPython3:
-                            data = struct.unpack(self.MSG_FORMAT_STRUCT, _BUFF_[_PTR_ + 3 : _PTR_ + self.MSG_FORMAT_PACKET_LEN])
+                            data = struct.unpack("BB4s16s64s", _BUFF_[_PTR_ + 3 : _PTR_ + 89])
                         else:
-                            data = struct.unpack(self.MSG_FORMAT_STRUCT, str(_BUFF_[_PTR_ + 3 : _PTR_ + self.MSG_FORMAT_PACKET_LEN]))
+                            data = struct.unpack("BB4s16s64s", str(_BUFF_[_PTR_ + 3 : _PTR_ + 89]))
                         msg_type1 = data[0]
-                        if msg_type1 != self.MSG_TYPE_FORMAT:
+                        if msg_type1 != 0x80:
                             msg_length1 = data[1]
                             msg_name1 = _parseCString(data[2])
                             msg_format1 = _parseCString(data[3])
@@ -205,7 +206,7 @@ class sdlog2_pp:
                             self.msg_descrs[msg_type1] = (msg_length1, msg_name1, msg_format1, msg_labels1, msg_struct1, msg_mults1)
                             self.msg_labels[msg_name1] = msg_labels1
                             self.msg_names.append(msg_name1)
-                            _PTR_ += self.MSG_FORMAT_PACKET_LEN
+                            _PTR_ += 89
                     else:
                         # parse data message
                         msg_descr = self.msg_descrs[msg_type]
@@ -220,13 +221,12 @@ class sdlog2_pp:
                             break
                         if first_data_msg:
                             # build CSV columns and init data map
-                            if not self.debug_out:
-                                self.initCSV()
+                            self.initCSV()
                             first_data_msg = False
-                        if not self.debug_out and _TIME_MSG_ != None and msg_name1 == _TIME_MSG_ and self.csv_updated:
+                        if _TIME_MSG_ != None and msg_name1 == _TIME_MSG_ and self.csv_updated:
                             # self.printCSVRow()
                             # self.updateLogData()
-                            for full_label in self.csv_columns:
+                            for full_label in _CSV_COLS_:
                                 v = _CSV_DATA_[full_label]
                                 if v == None:
                                     v = 0
@@ -235,9 +235,9 @@ class sdlog2_pp:
                         show_fields = self.filterMsg(msg_name1)
                         if (show_fields != None):
                             if runningPython3:
-                                data = list(self.msg_structs[msg_name1](_BUFF_[_PTR_+self.MSG_HEADER_LEN:_PTR_+msg_length1]))
+                                data = list(self.msg_structs[msg_name1](_BUFF_[_PTR_+3:_PTR_+msg_length1]))
                             else:
-                                data = list(self.msg_structs[msg_name1](str(_BUFF_[_PTR_+self.MSG_HEADER_LEN:_PTR_+msg_length1])))
+                                data = list(self.msg_structs[msg_name1](str(_BUFF_[_PTR_+3:_PTR_+msg_length1])))
                             for i in range(len(data)):
                                 if type(data[i]) is str:
                                     data[i] = str(data[i]).split('\0')[0]
@@ -256,7 +256,7 @@ class sdlog2_pp:
                                 self.params[str(data[0])] = float(data[1])
                         _PTR_ += msg_length1
                 bytes_read += _PTR_
-                if not self.debug_out and _TIME_MSG_ != None and self.csv_updated:
+                if _TIME_MSG_ != None and self.csv_updated:
                     # self.printCSVRow()
                     # self.updateLogData()
                     pass
