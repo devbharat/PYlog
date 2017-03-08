@@ -21,6 +21,7 @@ def graph(data_y, legend_str=''):
 def procS(file_name):
 	parser = PYlog.sdlog2_pp()
 	parser.process(file_name)
+	del parser
 
 def _main():
 	"""
@@ -101,7 +102,7 @@ if __name__ == "__main__":
 		datafilenameList = []
 		logfilenameList = []
 		processes = []
-		poo = mp.Pool(8)
+		poo = mp.Pool(processes=8,maxtasksperchild=4)
 		# is directory, look for all files inside it
 		for root, dirs, files in os.walk(sys.argv[1]):
 			for file in files:
@@ -130,6 +131,8 @@ if __name__ == "__main__":
 		    p.join()
 		"""
 		poo.map(procS, logfilenameList)
+		poo.close()
+		poo.join()
 
 	elif(os.path.isfile(sys.argv[1])):
 		fn = sys.argv[1]

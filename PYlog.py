@@ -261,6 +261,7 @@ class sdlog2_pp:
                     # self.updateLogData()
                     pass
             m.close()
+            del m
         print("Writing file %s" % filename)
         for full_label in self.csv_columns:
             v = self.log_data[full_label]
@@ -269,6 +270,7 @@ class sdlog2_pp:
         for key in self.params:
             g.create_dataset(key, data=self.params[key])
         g.close()
+        del g
     
     def filterMsg(self, msg_name):
         show_fields = "*"
@@ -400,6 +402,7 @@ def _main():
     parser.setCorrectErrors(correct_errors)
 
     parser.process(fn)
+    del parser
     # Pickle it
     #with open('company_data.pkl', 'wb') as output:
     #    pickle.dump(parser, output, pickle.HIGHEST_PROTOCOL)
