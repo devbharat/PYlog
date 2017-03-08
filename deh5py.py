@@ -101,6 +101,7 @@ if __name__ == "__main__":
 		datafilenameList = []
 		logfilenameList = []
 		processes = []
+		poo = mp.Pool(8)
 		# is directory, look for all files inside it
 		for root, dirs, files in os.walk(sys.argv[1]):
 			for file in files:
@@ -115,9 +116,9 @@ if __name__ == "__main__":
 					else:
 						datafilenameList.append(datafilename)
 						logfilenameList.append(logfilename)
-						#procS(logfilename)
+						#poo.apply(procS, (logfilename,))
+		"""
 		for i in range(len(logfilenameList)):
-			print("BANANAN   %s" % logfilenameList[i])
 			processes.append(mp.Process(target=procS, args=(logfilenameList[i],)))
 
 		# Run processes
@@ -127,6 +128,8 @@ if __name__ == "__main__":
 		# Exit the completed processes
 		for p in processes:
 		    p.join()
+		"""
+		poo.map(procS, logfilenameList)
 
 	elif(os.path.isfile(sys.argv[1])):
 		fn = sys.argv[1]
