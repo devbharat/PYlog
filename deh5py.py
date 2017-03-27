@@ -5,18 +5,10 @@ import numpy as np
 import h5py
 import struct, sys, os
 import PYlog
+import transformations as trans
 #from PYlog import sdlog2_pp
 
 import multiprocessing as mp
-
-def graph(data_y, legend_str=''):
-	plt.figure()
-	plt.plot(t, data_y)
-	plt.grid(1)
-	plt.xlabel('Time in seconds')
-	if (legend_str != ''):
-		plt.legend([legend_str])
-	plt.show()
 
 def procS(file_name):
 	parser = PYlog.sdlog2_pp()
@@ -102,7 +94,7 @@ if __name__ == "__main__":
 		datafilenameList = []
 		logfilenameList = []
 		processes = []
-		poo = mp.Pool(processes=8,maxtasksperchild=4)
+		poo = mp.Pool(processes=3,maxtasksperchild=10)
 		# is directory, look for all files inside it
 		for root, dirs, files in os.walk(sys.argv[1]):
 			for file in files:
@@ -153,25 +145,19 @@ if __name__ == "__main__":
 				exec('%s = M["%s"].value' % (label, label))
 			except:
 				print('Error executing %s = M["%s"][3:]' % (label, label))
-	# Shortcuts
+	# Turn quat to Rotation matrix for quick postprocess
 	try:
-		global t
-		t = TIME_StartTime / 1000000.0
-		yaw = MPCE_yaw
-		pitch = ATT_Pitch
-		pitch_sp = ATSP_PitchSP
-		t1 = MPCD_t1
-		t2 = MPCD_t2
-		t3 = MPCD_t3
-		fd0 = ACTR_fd0
-		fd1 = ACTR_fd1
-		fSat0 = ACTR_fSat0
-		fSat1 = ACTR_fSat1
-		navS = STAT_NavState
-		tx_b = MPCD_t1*np.cos(yaw) + MPCD_t2*np.sin(yaw)
-		vx_b = LPOS_VX*np.cos(MPCE_yaw) + LPOS_VY*np.sin(MPCE_yaw)
-		vx_sp_b = LPSP_VX*np.cos(MPCE_yaw) + LPSP_VY*np.sin(MPCE_yaw)
-		vex_b = MPCE_veX*np.cos(yaw) + MPCE_veY*np.sin(yaw)
+		quat=np.array([M["ATT_qw"][3:], M["ATT_qx"][3:], M["ATT_qy"][3:], M["ATT_qz"][3:]])
+		R = []
+		ATT_PitchHov = []
+		for i in range(np.size(quat, 1)):
+			m = trans.quaternion_matrix(quat[:,i])
+			roll, pitch, yaw = trans.euler_from_matrix(m)
+			ATT_PitchHov.append(pitch)
+			R.append(m)
+		ATT_PitchHov = np.array(ATT_PitchHov) - np.pi / 2.0
 	except:
+		e = sys.exc_info()[0]
+		print( "<p>Error: %s</p>" % e )
 		pass
 	_main()
