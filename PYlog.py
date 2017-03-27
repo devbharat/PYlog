@@ -237,11 +237,17 @@ class sdlog2_pp:
                             if runningPython3:
                                 data = list(self.msg_structs[msg_name1](_BUFF_[_PTR_+3:_PTR_+msg_length1]))
                             else:
-                                data = list(self.msg_structs[msg_name1](str(_BUFF_[_PTR_+3:_PTR_+msg_length1])))
+                                try:
+                                    data = list(self.msg_structs[msg_name1](str(_BUFF_[_PTR_+3:_PTR_+msg_length1])))
+                                except:
+                                    pass
                             for i in range(len(data)):
                                 if type(data[i]) is str:
                                     data[i] = str(data[i]).split('\0')[0]
-                                m1 = msg_mults1[i]
+                                try:
+                                    m1 = msg_mults1[i]
+                                except:
+                                    pass
                                 if m1 != None:
                                     data[i] = data[i] * m1
 
