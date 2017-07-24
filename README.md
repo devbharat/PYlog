@@ -1,7 +1,6 @@
 [![Build Status](https://semaphoreci.com/api/v1/devbharat/pylog/branches/feature-pyqtlog/badge.svg)](https://semaphoreci.com/devbharat/pylog)
 
-===============
- PYlog
+PYlog
 ===============
 
 Quick hackjob based on sdlog2_dump.py from https://github.com/PX4/Firmware/blob/master/Tools/sdlog2/sdlog2_dump.py. 
@@ -14,13 +13,22 @@ This postprocessing pipeline is ideal for those who
  - Need to perform array/matrix operations on logged variables(that are for example not possible with MAVExplorer)
  - Need to postprocess the same logfile multiple times(and don't want to waste time parsing the binary each time)
  
+Installation
+==============
+
+    pip install numpy cython h5py
+    cython ./PYlog.py && gcc -shared -pthread -fPIC -fwrapv -O3 -Wall -fno-strict-aliasing -I/usr/include/python2.7 -o PYlog.so PYlog.c
+    cython ./deh5py.py && gcc -shared -pthread -fPIC -fwrapv -O3 -Wall -fno-strict-aliasing -I/usr/include/python2.7 -o deh5py.so deh5py.c
+    python setup.py build
+    sudo python setup.py install
+    python deh5py.py test/
+
+
 Usage
 ==============
 
 The handiest way to use the script is to run it with python intepreter
 
-
-::
 
     ipython --pylab
 
