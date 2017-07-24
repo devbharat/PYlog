@@ -1,4 +1,4 @@
-[![Build Status](https://semaphoreci.com/api/v1/devbharat/pylog/branches/feature-pyqtlog/badge.svg)](https://semaphoreci.com/devbharat/pylog)
+[![Build Status](https://semaphoreci.com/api/v1/devbharat/pylog/branches/master/badge.svg)](https://semaphoreci.com/devbharat/pylog)
 
 PYlog
 ===============
