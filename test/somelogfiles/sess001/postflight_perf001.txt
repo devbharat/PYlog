@@ -1,0 +1,86 @@
+PERFORMANCE COUNTERS POST-FLIGHT
+
+sd write: 87278 events, 0 overruns, 195376354us elapsed, 2238us avg, min 9us max 497661us 8226.559us rms
+navigator: 12188 events, 0 overruns, 15496592us elapsed, 1271us avg, min 43us max 861206us 11722.118us rms
+sd drop: 76434 events
+moment_force_mapping: 49926 events, 0 overruns, 2003274us elapsed, 40us avg, min 32us max 186us 22.834us rms
+fw l1 control: 29981 events, 0 overruns, 11148521us elapsed, 371us avg, min 30us max 755us 185.599us rms
+geometric_controller: 49926 events, 0 overruns, 7326998us elapsed, 146us avg, min 120us max 777us 60.414us rms
+mavlink_txe: 0 events
+mavlink_el: 54101 events, 0 overruns, 24997607us elapsed, 462us avg, min 53us max 961902us 9936.586us rms
+sensors: 149707 events, 0 overruns, 24831614us elapsed, 165us avg, min 67us max 548us 168.590us rms
+ll40ls_i2c_zero_resets: 0 events
+ll40ls_i2c_resets: 0 events
+ll40ls_buffer_i2c_overflows: 27642 events
+ll40ls_i2c_comms_errors: 0 events
+ll40ls_i2c_read: 27642 events, 0 overruns, 23814862us elapsed, 861us avg, min 529us max 6937us 955.109us rms
+aspd_com_err: 0 events
+aspd_read: 49906 events, 0 overruns, 38675242us elapsed, 774us avg, min 496us max 6151us 812.879us rms
+aspd_buf_of: 8 events
+mpu9250_dupe: 156132 events
+mpu9250_reset: 0 events
+mpu9250_good_trans: 593718 events
+mpu9250_bad_reg: 0 events
+mpu9250_bad_trans: 0 events
+mpu9250_read: 749854 events, 0 overruns, 45414002us elapsed, 60us avg, min 41us max 78us 15.357us rms
+mpu9250_gyro_read: 0 events
+mpu9250_acc_read: 0 events
+mpu9250_mag_duplicates: 531576 events
+mpu9250_mag_overflows: 0 events
+mpu9250_mag_overruns: 8153 events
+mpu9250_mag_errors: 0 events
+mpu9250_mag_reads: 0 events
+ctrl_latency: 0 events, 0 overruns, 0us elapsed, 0us avg, min 0us max 0us 0.000us rms
+mpu6k_duplicates: 150688 events
+mpu6k_reset: 0 events
+mpu6k_good_trans: 599178 events
+mpu6k_bad_reg: 0 events
+mpu6k_bad_trans: 0 events
+mpu6k_read: 749874 events, 0 overruns, 37863713us elapsed, 50us avg, min 25us max 70us 17.074us rms
+mpu6k_gyro_read: 0 events
+mpu6k_acc_read: 0 events
+hmc5883_conf_err: 0 events
+hmc5883_rng_err: 0 events
+hmc5883_buf_of: 26806 events
+hmc5883_com_err: 0 events
+hmc5883_read: 26806 events, 0 overruns, 1231466us elapsed, 45us avg, min 22us max 5675us 239.034us rms
+hmc5883_conf_err: 0 events
+hmc5883_rng_err: 0 events
+hmc5883_buf_of: 61768 events
+hmc5883_com_err: 0 events
+hmc5883_read: 61769 events, 0 overruns, 78085809us elapsed, 1264us avg, min 870us max 33695us 998.935us rms
+adc_samples: 539928 events, 0 overruns, 1465259us elapsed, 2us avg, min 2us max 3us 0.693us rms
+ms5611_buf_of: 17428 events
+ms5611_com_err: 0 events
+ms5611_measure: 23238 events, 0 overruns, 230540us elapsed, 9us avg, min 5us max 3983us 104.565us rms
+ms5611_read: 23238 events, 0 overruns, 2881154us elapsed, 123us avg, min 10us max 5787us 430.836us rms
+dma_alloc: 1 events
+
+LOAD POST-FLIGHT
+
+Processes: 20 total, 2 running, 18 sleeping
+CPU usage: 47.32% tasks, 8.12% sched, 44.56% idle
+DMA Memory: 5120 total, 2048 used 2560 peak
+Uptime: 1412.461s total, 682.767s idle
+
+ PID COMMAND                   CPU(ms) CPU(%)  USED/STACK PRIO(BASE) STATE 
+   0 Idle Task                  682766 44.557     0/    0   0 (  0)  READY 
+   1 hpwork                      64362  4.335   860/ 1592 192 (192)  w:sem 
+   2 lpwork                      10542  0.922   924/ 1592  50 ( 50)  READY 
+   3 init                         1600  0.000   980/ 2496 100 (100)  w:sem 
+  28 gps                          3997  0.184   932/ 1192 220 (220)  w:sem 
+  29 gps                          4132  0.184   812/ 1192 220 (220)  w:sem 
+  31 dataman                       809  1.937   748/ 1192  90 ( 90)  w:sem 
+  68 sensors                     71312  4.797  1372/ 1896 250 (250)  w:sem 
+  70 commander                   36195  2.306  3396/ 3992 140 (140)  READY 
+  82 mavlink_if0                 17990  1.107  1820/ 2496 100 (100)  READY 
+  83 mavlink_rcv_if0               956  0.000  1556/ 2096 175 (175)  w:sem 
+ 103 commander_low_prio            332  0.000  1124/ 2992  50 ( 50)  w:sem 
+ 106 ekf2                       283078 19.003  5404/ 6192 250 (250)  w:sem 
+ 108 geometric_controller_mulú    49289  3.044  4316/ 4992 250 (250)  w:sem 
+ 110 fw_pos_ctrl_l1              16358  0.369  1260/ 1896 250 (250)  w:sem 
+ 112 mc_pos_control              65047  5.535  1756/ 2192 250 (250)  w:sem 
+ 116 moment_force_mapping_mulú    12940  1.014  2100/ 2496 250 (250)  w:sem 
+ 118 output_pwm                  10454  0.738   996/ 1392 250 (250)  w:sem 
+ 137 sdlog2                      58083  0.000  2436/ 2992 177 (177)  RUN   
+ 143 navigator                    9208  1.845  1252/ 1896 105 (105)  READY 
