@@ -18,6 +18,9 @@ Installation
 
     pip install numpy cython h5py
     python setup.py build
+    
+You can test the script with the included log files in the test folder
+
     python deh5py.py test/
 
 
@@ -32,16 +35,7 @@ The handiest way to use the script is to run it with python intepreter
     %run deh5py.py /path/to/direcotryWithLogfiles
 
     # Example
-    vx_body = LPOS_VX*cos(ATT_Yaw) + LPOS_VY*sin(ATT_Yaw)
-    d=np.array([t.transpose(), LPOS_X.transpose(), LPOS_Y.transpose(), LPOS_Z.transpose()])
-    for i in range(len(vx_body)):
-        if(a[i] == 1): #throttle not zero
-            p.append(d[:,i])
-    hlm1=asmatrix([x, x1, x2, x3])
-    hlm1=hlm1.transpose()
-    cfz1 = asmatrix(cfz1)
-    cfz1 = cfz1.transpose()
-    cl1 = hlm1*cfz1
-
+    t=TIME_StartTime/1e06
+    plot(t, LPOS_Z)
 
 The first time you run the deh5py.py script, it'll write a .hdf5 file and load the arrays/params to the interpreter. The next time onwards it'll simply read it, so it'll be much faster. You can use TAB for auto  completing array names and param names on the commandline which is also pretty handy.
