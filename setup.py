@@ -9,7 +9,7 @@ setup(name='sdlog2_pp',
       version='0.0.1',
       description='Python PX4 sdlog2 plotting scripts.',
       author='Bharat Tak',
-      scripts=['src/PYlog.py', 'src/deh5py.py'],
+      scripts=['src/transformations.py', 'src/PYlog.py', 'src/deh5py.py'],
       )
 
 """
