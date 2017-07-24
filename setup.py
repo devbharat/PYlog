@@ -13,5 +13,5 @@ setup(name='sdlog2_pp',
       )
 
 """
-cythonize ./PYlog.py && gcc -shared -pthread -fPIC -fwrapv -O3 -Wall -fno-strict-aliasing -I/usr/include/python2.7 -o PYlog.so PYlog.c
+cythonize src/PYlog.py && gcc -shared -pthread -fPIC -fwrapv -O3 -Wall -fno-strict-aliasing -I/usr/include/python2.7 -o PYlog.so src/PYlog.c
 """

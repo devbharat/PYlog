@@ -17,11 +17,11 @@ Installation
 ==============
 
     pip install numpy cython h5py
-    cython ./PYlog.py && gcc -shared -pthread -fPIC -fwrapv -O3 -Wall -fno-strict-aliasing -I/usr/include/python2.7 -o PYlog.so PYlog.c
-    cython ./deh5py.py && gcc -shared -pthread -fPIC -fwrapv -O3 -Wall -fno-strict-aliasing -I/usr/include/python2.7 -o deh5py.so deh5py.c
+    cython src/PYlog.py && gcc -shared -pthread -fPIC -fwrapv -O3 -Wall -fno-strict-aliasing -I/usr/include/python2.7 -o PYlog.so src/PYlog.c
+    cython src/deh5py.py && gcc -shared -pthread -fPIC -fwrapv -O3 -Wall -fno-strict-aliasing -I/usr/include/python2.7 -o deh5py.so src/deh5py.c
     python setup.py build
-    sudo python setup.py install
-    python deh5py.py test/
+    python setup.py install
+    deh5py.py test/
 
 
 Usage
