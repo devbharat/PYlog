@@ -4,14 +4,13 @@ import errno
 import subprocess
 
 from distutils.core import setup
+from Cython.Build import cythonize
 
 setup(name='sdlog2_pp',
       version='0.0.1',
       description='Python PX4 sdlog2 plotting scripts.',
       author='Bharat Tak',
-      scripts=['src/transformations.py', 'src/PYlog.py', 'src/deh5py.py'],
+      ext_modules = cythonize(['src/PYlog.pyx']),
+      scripts = ['transformations.py', 'deh5py.py'],
       )
 
-"""
-cythonize src/PYlog.py && gcc -shared -pthread -fPIC -fwrapv -O3 -Wall -fno-strict-aliasing -I/usr/include/python2.7 -o PYlog.so src/PYlog.c
-"""
