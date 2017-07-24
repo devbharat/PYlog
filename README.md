@@ -17,6 +17,7 @@ Installation
 ==============
 
     pip install numpy cython h5py
+    python setup.py build_ext --inplace
     python setup.py build
     
 You can test the script with the included log files in the test folder
