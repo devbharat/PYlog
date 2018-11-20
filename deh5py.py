@@ -6,6 +6,7 @@ import struct, sys, os
 import PYlog
 import transformations as trans
 import json
+import copy
 #from PYlog import sdlog2_pp
 
 import multiprocessing as mp
@@ -52,7 +53,7 @@ def get_geotag_data(log_data):
 
 	for i in range(len(CAMT_seq)):
 		if (CAMT_seq[i] != prev_cam_seq):
-			# print CAMT_seq[i],TIME_StartTime[i], CAMT_timestamp[i], GPOS_Lat[i], GPOS_Lon[i], GPOS_Alt[i]
+			print CAMT_seq[i],TIME_StartTime[i], CAMT_timestamp[i], GPOS_Lat[i], GPOS_Lon[i], GPOS_Alt[i]
 			timestamp_approx.append((TIME_StartTime[i] / 1000.0) + 300)
 			timestamp_exact.append((CAMT_timestamp[i] / 1000.0) + 300)
 			lat_approx.append(GPOS_Lat[i] / 1.0)
@@ -120,7 +121,7 @@ def gen_geotag_list(log_data):
 
 	geotag_list = geotag_json_obj['flights'][0]['geotag']
 	geotag_item = geotag_list[0]
-	tmp_geotag_item = geotag_item.copy()
+	tmp_geotag_item = copy.deepcopy(geotag_item)
 
 	for i in range(np.shape(d)[1]):
 		timestamp_approx, timestamp_exact, lat_approx, lon_approx, alt_approx, roll_approx, pitch_appro, yaw_approx = list(d[:,i])
@@ -147,8 +148,7 @@ def gen_geotag_list(log_data):
 			tmp_geotag_item['timestamp'] = str(timestamp_exact).decode('utf8')
 
 			geotag_list.append(tmp_geotag_item)
-			tmp_geotag_item = tmp_geotag_item.copy()
-
+			tmp_geotag_item = copy.deepcopy(tmp_geotag_item)
 	# print json.dumps(geotag_json_obj, indent = 4)
 	return geotag_json_obj
 
