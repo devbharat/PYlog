@@ -209,9 +209,13 @@ class sdlog2_pp:
                             _PTR_ += 89
                     else:
                         # parse data message
-                        msg_descr = self.msg_descrs[msg_type]
-                        if msg_descr == None:
-                            raise Exception("Unknown msg type: %i" % msg_type)
+                        try:
+                            msg_descr = self.msg_descrs[msg_type]
+                            # if msg_descr == None:
+                            #     raise Exception("Unknown msg type: %i" % msg_type)
+                        except KeyError as e:
+                            pass
+
                         msg_length1 = msg_descr[0]
                         msg_name1 = msg_descr[1]
                         msg_labels1 = msg_descr[3]

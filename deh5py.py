@@ -5,9 +5,152 @@ import h5py
 import struct, sys, os
 import PYlog
 import transformations as trans
+import json
 #from PYlog import sdlog2_pp
 
 import multiprocessing as mp
+
+def get_geotag_data(log_data):
+	t = log_data["TIME_StartTime"][3:]
+	CAMT_seq = log_data["CAMT_seq"][3:]
+	CAMT_timestamp = log_data["CAMT_timestamp"][3:]
+	roll = []
+	pitch = []
+	yaw = []
+
+	try:
+		quat=np.array([M["ATT_qw"][3:], M["ATT_qx"][3:], M["ATT_qy"][3:], M["ATT_qz"][3:]])
+		R = []
+		ATT_PitchHov = []
+		for i in range(np.size(quat, 1)):
+			m = trans.quaternion_matrix(quat[:,i])
+			r, p, y = trans.euler_from_matrix(m)
+			roll.append(r)
+			pitch.append(p)
+			yaw.append(y)
+	except:
+		e = sys.exc_info()[0]
+		print( "<p>Error: %s</p>" % e )
+		pass
+
+	GPOS_Lat = log_data["GPOS_Lat"][3:]
+	GPOS_Lon = log_data["GPOS_Lon"][3:]
+	GPOS_Alt = log_data["GPOS_Alt"][3:]
+
+	# output
+	timestamp_approx = []
+	timestamp_exact = []
+	lat_approx = []
+	lon_approx = []
+	alt_approx = []
+	roll_approx = []
+	pitch_appro = []
+	yaw_approx = []
+
+	# tmp variable init
+	prev_cam_seq = 0
+
+	for i in range(len(CAMT_seq)):
+		if (CAMT_seq[i] != prev_cam_seq):
+			# print CAMT_seq[i],TIME_StartTime[i], CAMT_timestamp[i], GPOS_Lat[i], GPOS_Lon[i], GPOS_Alt[i]
+			timestamp_approx.append((TIME_StartTime[i] / 1000.0) + 300)
+			timestamp_exact.append((CAMT_timestamp[i] / 1000.0) + 300)
+			lat_approx.append(GPOS_Lat[i] / 1.0)
+			lon_approx.append(GPOS_Lon[i] / 1.0)
+			alt_approx.append(GPOS_Alt[i])
+			roll_approx.append(roll[i])
+			pitch_appro.append(pitch[i])
+			yaw_approx.append(yaw[i])
+			prev_cam_seq = CAMT_seq[i]
+
+	ret = [timestamp_approx, timestamp_exact, lat_approx, lon_approx, alt_approx, roll_approx, pitch_appro, yaw_approx]
+	return np.array(ret)
+
+def gen_geotag_list(log_data):
+	d = get_geotag_data(log_data)
+
+	""" Output format should look like below
+	{
+		"flights": [
+			{
+				"geotag": [
+					{
+						"coordinate": [
+							"28.986774492071003",
+							"-95.412158025929685",
+							"76.668975830078125"
+						],
+						"hAccuracy": "5",
+						"pitch": "-0.052623718060734626",
+						"roll": "0.32719370722770691",
+						"sequence": "0",
+						"timestamp": "1538495464067.603",
+						"vAccuracy": "10",
+						"version": "1",
+						"yaw": "-1.4531420469284058"
+					},
+					{
+						"coordinate": [
+							"28.984050026956627",
+							"-95.414339015017958",
+							"75.263534545898438"
+						],
+						"hAccuracy": "5",
+						"pitch": "0.019284092806098108",
+						"roll": "0.57114452123641968",
+						"sequence": "1195",
+						"timestamp": "1538496873627.0281",
+						"vAccuracy": "10",
+						"version": "1",
+						"yaw": "-1.406010627746582"
+					}
+				],
+				"name": "Raw"
+			}
+		]
+	}
+
+	data = {'flights':[{'geotag':[{'coordinate':['28.986774492071003', '-95.412158025929685', '76.668975830078125'], 'hAccuracy' : '5', 'pitch' : '-0.052623718060734626' , 'roll' : '0.3271937072277069' , 'sequence' : '0' , 'timestamp' : '1538495464067.603' , 'vAccuracy' : '10' , 'version' : '1' , 'yaw' : '-1.406010627746582'}], 'name': 'Raw'}]}
+	print json.dumps(data, indent=4)
+
+	"""
+	template = {'flights':[{'geotag':[{'coordinate':['', '', ''], 'hAccuracy' : '5', 'pitch' : '' , 'roll' : '' , 'sequence' : '' , 'timestamp' : '' , 'vAccuracy' : '10' , 'version' : '1' , 'yaw' : ''}], 'name': 'Raw'}]}
+	geotag_json_string = json.dumps(template, indent=4)
+	geotag_json_obj = json.loads(geotag_json_string)
+
+	geotag_list = geotag_json_obj['flights'][0]['geotag']
+	geotag_item = geotag_list[0]
+	tmp_geotag_item = geotag_item.copy()
+
+	for i in range(np.shape(d)[1]):
+		timestamp_approx, timestamp_exact, lat_approx, lon_approx, alt_approx, roll_approx, pitch_appro, yaw_approx = list(d[:,i])
+
+		if (i == 0):
+			# lat lon alt
+			geotag_item['coordinate'][0] = str(lat_approx).decode('utf8')
+			geotag_item['coordinate'][1] = str(lon_approx).decode('utf8')
+			geotag_item['coordinate'][2] = str(alt_approx).decode('utf8')
+			geotag_item['sequence'] = str(i).decode('utf8')
+			geotag_item['pitch'] = str(pitch_appro).decode('utf8')
+			geotag_item['roll'] = str(roll_approx).decode('utf8')
+			geotag_item['yaw'] = str(yaw_approx).decode('utf8')
+			geotag_item['timestamp'] = str(timestamp_exact).decode('utf8')
+
+		else:
+			tmp_geotag_item['coordinate'][0] = str(lat_approx).decode('utf8')
+			tmp_geotag_item['coordinate'][1] = str(lon_approx).decode('utf8')
+			tmp_geotag_item['coordinate'][2] = str(alt_approx).decode('utf8')
+			tmp_geotag_item['sequence'] = str(i).decode('utf8')
+			tmp_geotag_item['pitch'] = str(pitch_appro).decode('utf8')
+			tmp_geotag_item['roll'] = str(roll_approx).decode('utf8')
+			tmp_geotag_item['yaw'] = str(yaw_approx).decode('utf8')
+			tmp_geotag_item['timestamp'] = str(timestamp_exact).decode('utf8')
+
+			geotag_list.append(tmp_geotag_item)
+			tmp_geotag_item = tmp_geotag_item.copy()
+
+	# print json.dumps(geotag_json_obj, indent = 4)
+	return geotag_json_obj
 
 def procS(file_name):
 	parser = PYlog.sdlog2_pp()
@@ -49,11 +192,11 @@ if __name__ == "__main__":
 
 		# Run processes
 		for p in processes:
-		    p.start()
+			p.start()
 
 		# Exit the completed processes
 		for p in processes:
-		    p.join()
+			p.join()
 		"""
 		poo.map(procS, logfilenameList)
 		poo.close()
@@ -70,6 +213,7 @@ if __name__ == "__main__":
 			parser.process(logfilename)
 
 	M = h5py.File(datafilename)
+	
 	for label in M.keys():
 		try:
 			exec('%s = M["%s"][3:]' % (label, label))
@@ -93,4 +237,10 @@ if __name__ == "__main__":
 		e = sys.exc_info()[0]
 		print( "<p>Error: %s</p>" % e )
 		pass
+
+	gt = gen_geotag_list(M)
+	geotag_file_name = datafilename + '.json'
+	with open(geotag_file_name, 'w') as outfile:  
+		outfile.write(json.dumps(gt, indent = 4))
+
 	_main()
