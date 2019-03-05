@@ -15,6 +15,8 @@ import copy
 #from PYlog import sdlog2_pp
 
 import multiprocessing as mp
+import scipy
+from scipy import signal, misc
 
 
 
@@ -487,7 +489,7 @@ def main(root_dir):
 
 							if csv_delim == "\\t":
 								csv_delim = "\t"
-							
+
 							parser.setCSVDelimiter(csv_delim)
 							parser.setCSVNull(csv_null)
 							parser.setMsgFilter(msg_filter)
@@ -496,7 +498,10 @@ def main(root_dir):
 							parser.setDebugOut(debug_out)
 							parser.setCorrectErrors(correct_errors)
 							print('Processing %s ' % logfilename)
-							parser.process(logfilename)
+							try:
+								parser.process(logfilename)
+							except Exception as e:
+								print(e)
 							print('Done Processing %s' % logfilename)
 							del parser
 
@@ -507,6 +512,7 @@ def main(root_dir):
 							M = h5py.File(datafilename)
 						except Exception as e:
 							print(e)
+							break
 
 						# print M.keys()
 						if 'AIRCRAFT_ID' in M.keys():
@@ -547,6 +553,155 @@ def main(root_dir):
 						else:
 							print('AIRCRAFT_ID not found in file %s' % datafilename)
 	return cal_param_list, cal_param_dict
+
+def reject_outliers(data, m = 2.):
+	d = np.abs(data - np.median(data))
+	mdev = np.median(d)
+	s = d/mdev if mdev else 0.
+	return np.ma.masked_where(s>m, data)
+
+
+def inverse_cal(root_dir):
+	ret_dict = {}
+	ret_list = ['session_number', 'mag_norm_orig', 'mag_norm_orig_diff']
+	if (os.path.isdir(root_dir)):
+		# is directory, look for all files inside it
+		for root, dirs, files in os.walk(root_dir):
+			for file in files:
+				if file.endswith('.px4log'):
+					fname =os.path.join(root, file)
+					if 'preflight' in fname:
+						pass
+					else:
+						fn = os.path.join(root, file)
+						datafilename = os.path.splitext(fn)[0] + '.hdf5'
+						logfilename = os.path.splitext(fn)[0] + '.px4log'
+
+						# check logfile size
+						statinfo = os.stat(logfilename)
+						if (statinfo.st_size < 1000000): # < 1MB
+							print('Filesize too small %s' % logfilename)
+							break
+
+						if (os.path.isfile(datafilename)):
+							pass
+						else:
+							parser = sdlog2_pp()
+							debug_out = False
+							correct_errors = True
+							msg_filter = []
+							csv_null = ""
+							csv_delim = ","
+							time_msg = "TIME"
+							file_name = None
+							opt = None
+							for arg in sys.argv[2:]:
+								if opt != None:
+									if opt == "d":
+										csv_delim = arg
+									elif opt == "n":
+										csv_null = arg
+									elif opt == "t":
+										time_msg = arg
+									elif opt == "f":
+										file_name = arg
+									elif opt == "m":
+										show_fields = "*"
+										a = arg.split("_")
+										if len(a) > 1:
+											show_fields = a[1].split(",")
+										msg_filter.append((a[0], show_fields))
+									opt = None
+								else:
+									if arg == "-v":
+										debug_out = True
+									elif arg == "-e":
+										correct_errors = True
+									elif arg == "-d":
+										opt = "d"
+									elif arg == "-n":
+										opt = "n"
+									elif arg == "-m":
+										opt = "m"
+									elif arg == "-t":
+										opt = "t"
+									elif arg == "-f":
+										opt = "f"
+
+							if csv_delim == "\\t":
+								csv_delim = "\t"
+
+							parser.setCSVDelimiter(csv_delim)
+							parser.setCSVNull(csv_null)
+							parser.setMsgFilter(msg_filter)
+							parser.setTimeMsg(time_msg)
+							parser.setFileName(file_name)
+							parser.setDebugOut(debug_out)
+							parser.setCorrectErrors(correct_errors)
+							print('Processing %s ' % logfilename)
+							try:
+								parser.process(logfilename)
+							except Exception as e:
+								print(e)
+							print('Done Processing %s' % logfilename)
+							del parser
+
+						current_session_number = get_session_number(datafilename)
+
+						try:
+							M = h5py.File(datafilename)
+
+							"""
+							X_mask = reject_outliers(M['IMU_MagX'][3:], 100.0)
+							Y_mask = reject_outliers(M['IMU_MagY'][3:], 100.0)
+							Z_mask = reject_outliers(M['IMU_MagZ'][3:], 100.0)
+							IMU_MagX = []
+							IMU_MagY = []
+							IMU_MagZ = []
+							for i in range(len(X_mask.data)):
+								if np.ma.getmaskarray(X_mask)[i] or np.ma.getmaskarray(Y_mask)[i] or np.ma.getmaskarray(Z_mask)[i]:
+									print('Outlier')
+									pass
+								else:
+									IMU_MagX.append(X_mask.data[i])
+									IMU_MagY.append(Y_mask.data[i])
+									IMU_MagZ.append(Z_mask.data[i])
+							IMU_MagX = np.array(IMU_MagX)
+							IMU_MagY = np.array(IMU_MagY)
+							IMU_MagZ = np.array(IMU_MagZ)
+							"""
+
+							IMU_MagX = scipy.signal.medfilt(M['IMU_MagX'][3:],7)
+							IMU_MagY = scipy.signal.medfilt(M['IMU_MagY'][3:],7)
+							IMU_MagZ = scipy.signal.medfilt(M['IMU_MagZ'][3:],7)
+
+							mag_norm_orig = np.sqrt(IMU_MagX**2 + IMU_MagY**2 + IMU_MagZ**2)
+							mag_norm_orig_diff = np.max(mag_norm_orig) - np.min(mag_norm_orig)
+							print(mag_norm_orig_diff)
+
+						except Exception as e:
+							print(e)
+							break
+
+						# print M.keys()
+						if 'AIRCRAFT_ID' in M.keys():
+							if M['AIRCRAFT_ID'].value in ret_dict.keys():
+								old_session_number = ret_dict[M['AIRCRAFT_ID'].value][ret_list.index('session_number')]
+								if old_session_number > current_session_number:
+									# print('Ignoring old session logfile for %s' % datafilename)
+									break
+								else:
+									# print current_session_number
+									ret_dict[M['AIRCRAFT_ID'].value] = [current_session_number]
+							else:
+								# print current_session_number
+								ret_dict[M['AIRCRAFT_ID'].value] = [current_session_number]
+
+							ret_dict[M['AIRCRAFT_ID'].value].append(mag_norm_orig)
+							ret_dict[M['AIRCRAFT_ID'].value].append(mag_norm_orig_diff)
+						else:
+							print('AIRCRAFT_ID not found in file %s' % datafilename)
+	return ret_list, ret_dict
 
 def get_field(field, src_list, src_dict):
 	ret = []
@@ -605,3 +760,4 @@ if __name__ == "__main__":
 
 	cal_list, cal_dict = main(sys.argv[1])
 	ret_offset, ret_scale, ret_off_diag = stat_mag_cal(cal_list, cal_dict)
+	ret_list, ret_dict = inverse_cal(sys.argv[1])
