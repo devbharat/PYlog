@@ -731,11 +731,22 @@ def inverse_cal(root_dir, stat_dict):
 							mag_norm_raw = np.sqrt(mag_x_raw**2 + mag_y_raw**2 + mag_z_raw**2)
 							mag_norm_raw_diff = np.max(mag_norm_raw) - np.min(mag_norm_raw)
 
+
+							#  prepare mean matrix
+							mat_cal_stat = np.array([[stat_dict['x_scale'], stat_dict['x_off_diag'], stat_dict['y_off_diag']], [stat_dict['x_off_diag'], stat_dict['y_scale'], stat_dict['z_off_diag']], [stat_dict['y_off_diag'], stat_dict['z_off_diag'], stat_dict['z_scale']]])
+							# mat_cal_stat = np.array([[x_scale_orig, stat_dict['x_off_diag'], stat_dict['y_off_diag']], [stat_dict['x_off_diag'], y_scale_orig, stat_dict['z_off_diag']], [stat_dict['y_off_diag'], stat_dict['z_off_diag'], z_scale_orig]])
+							off_cal_stat = np.matrix([stat_dict['x_offset'], stat_dict['y_offset'], stat_dict['z_offset']]).transpose()
+
 							# get inverse calculated measurements
 							mag_inv_meas = np.matrix(np.zeros(mag_meas.shape))
 							for i in range(len(IMU_MagX)):
 								# mag_inv_meas[:, i] = mat_cal_orig.dot(mag_raw_meas[:, i] - off_cal_orig)
-								mag_inv_meas[:, i] = mat_cal_orig.dot(mag_raw_meas[:, i]) - off_cal_orig
+								# mag_inv_meas[:, i] = mat_cal_orig.dot(mag_raw_meas[:, i]) - off_cal_orig
+								
+								# mag_inv_meas[:, i] = mat_cal_stat.dot(mag_raw_meas[:, i] - off_cal_orig)
+								# mag_inv_meas[:, i] = mat_cal_stat.dot(mag_raw_meas[:, i]) - off_cal_orig
+								
+								mag_inv_meas[:, i] = mat_cal_stat.dot(mag_raw_meas[:, i] - off_cal_stat)
 
 							mag_x_inv = np.array(mag_inv_meas[0, :])[0]
 							mag_y_inv = np.array(mag_inv_meas[1, :])[0]
