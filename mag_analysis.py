@@ -17,6 +17,7 @@ import copy
 import multiprocessing as mp
 import scipy
 from scipy import signal, misc
+from numpy.linalg import inv
 
 
 
@@ -554,6 +555,7 @@ def main(root_dir):
 							print('AIRCRAFT_ID not found in file %s' % datafilename)
 	return cal_param_list, cal_param_dict
 
+
 def reject_outliers(data, m = 2.):
 	d = np.abs(data - np.median(data))
 	mdev = np.median(d)
@@ -561,9 +563,9 @@ def reject_outliers(data, m = 2.):
 	return np.ma.masked_where(s>m, data)
 
 
-def inverse_cal(root_dir):
+def inverse_cal(root_dir, stat_dict):
 	ret_dict = {}
-	ret_list = ['session_number', 'mag_norm_orig', 'mag_norm_orig_diff']
+	ret_list = ['session_number', 'mag_norm_orig', 'mag_norm_orig_diff', 'mag_norm_raw', 'mag_norm_raw_diff', 'mag_norm_inv', 'mag_norm_inv_diff']
 	if (os.path.isdir(root_dir)):
 		# is directory, look for all files inside it
 		for root, dirs, files in os.walk(root_dir):
@@ -674,10 +676,73 @@ def inverse_cal(root_dir):
 							IMU_MagX = scipy.signal.medfilt(M['IMU_MagX'][3:],7)
 							IMU_MagY = scipy.signal.medfilt(M['IMU_MagY'][3:],7)
 							IMU_MagZ = scipy.signal.medfilt(M['IMU_MagZ'][3:],7)
+							mag_meas = np.matrix([IMU_MagX, IMU_MagY, IMU_MagZ])
+
+
+							x_off_orig = M['CAL_MAG0_XOFF'].value
+							y_off_orig = M['CAL_MAG0_YOFF'].value
+							z_off_orig = M['CAL_MAG0_ZOFF'].value
+
+							x_scale_orig = M['CAL_MAG0_XSCALE'].value
+							y_scale_orig = M['CAL_MAG0_YSCALE'].value
+							z_scale_orig = M['CAL_MAG0_ZSCALE'].value
+
+							off_diag_param_list = ['CAL_MAG0_ODX', 'CAL_MAG0_ODY', 'CAL_MAG0_ODZ']
+							for elem in off_diag_param_list:
+								if elem in M.keys():
+									if (elem == 'CAL_MAG0_ODX'):
+										x_off_diag_orig = M[elem].value
+									elif (elem == 'CAL_MAG0_ODY'):
+										y_off_diag_orig = M[elem].value
+									elif (elem == 'CAL_MAG0_ODZ'):
+										z_off_diag_orig = M[elem].value
+
+								else:
+									if (elem == 'CAL_MAG0_ODX') and ('CAL_MAG0_ODX1' in M.keys()):
+										x_off_diag_orig = M['CAL_MAG0_ODX1'].value
+									elif  (elem == 'CAL_MAG0_ODY') and ('CAL_MAG0_ODY1' in M.keys()):
+										y_off_diag_orig = M['CAL_MAG0_ODY1'].value
+									elif  (elem == 'CAL_MAG0_ODZ') and ('CAL_MAG0_ODZ1' in M.keys()):
+										z_off_diag_orig = M['CAL_MAG0_ODZ1'].value
+									else:
+										print('Key: %s' % elem)
+										print('Couldnt find a key in file %s' % datafilename)
+										break
 
 							mag_norm_orig = np.sqrt(IMU_MagX**2 + IMU_MagY**2 + IMU_MagZ**2)
 							mag_norm_orig_diff = np.max(mag_norm_orig) - np.min(mag_norm_orig)
-							print(mag_norm_orig_diff)
+							if mag_norm_orig_diff > 2:
+								break
+							# print(mag_norm_orig_diff)
+
+							# get calib matrix
+							mat_cal_orig = np.array([[x_scale_orig, x_off_diag_orig, y_off_diag_orig], [x_off_diag_orig, y_scale_orig, z_off_diag_orig], [y_off_diag_orig, z_off_diag_orig, z_scale_orig]])
+							mat_cal_orig_inv = inv(mat_cal_orig)
+							off_cal_orig = np.matrix([x_off_orig, y_off_orig, z_off_orig]).transpose()
+
+							# get raw measurements
+							mag_raw_meas = np.matrix(np.zeros(mag_meas.shape))
+							for i in range(len(IMU_MagX)):
+								mag_raw_meas[:, i] = mat_cal_orig_inv.dot(mag_meas[:, i]) + off_cal_orig
+
+							mag_x_raw = np.array(mag_raw_meas[0, :])[0]
+							mag_y_raw = np.array(mag_raw_meas[1, :])[0]
+							mag_z_raw = np.array(mag_raw_meas[2, :])[0]
+							mag_norm_raw = np.sqrt(mag_x_raw**2 + mag_y_raw**2 + mag_z_raw**2)
+							mag_norm_raw_diff = np.max(mag_norm_raw) - np.min(mag_norm_raw)
+
+							# get inverse calculated measurements
+							mag_inv_meas = np.matrix(np.zeros(mag_meas.shape))
+							for i in range(len(IMU_MagX)):
+								# mag_inv_meas[:, i] = mat_cal_orig.dot(mag_raw_meas[:, i] - off_cal_orig)
+								mag_inv_meas[:, i] = mat_cal_orig.dot(mag_raw_meas[:, i]) - off_cal_orig
+
+							mag_x_inv = np.array(mag_inv_meas[0, :])[0]
+							mag_y_inv = np.array(mag_inv_meas[1, :])[0]
+							mag_z_inv = np.array(mag_inv_meas[2, :])[0]
+							mag_norm_inv = np.sqrt(mag_x_inv**2 + mag_y_inv**2 + mag_z_inv**2)
+							mag_norm_inv_diff = np.max(mag_norm_inv) - np.min(mag_norm_inv)
+
 
 						except Exception as e:
 							print(e)
@@ -699,6 +764,11 @@ def inverse_cal(root_dir):
 
 							ret_dict[M['AIRCRAFT_ID'].value].append(mag_norm_orig)
 							ret_dict[M['AIRCRAFT_ID'].value].append(mag_norm_orig_diff)
+							ret_dict[M['AIRCRAFT_ID'].value].append(mag_norm_raw)
+							ret_dict[M['AIRCRAFT_ID'].value].append(mag_norm_raw_diff)
+							ret_dict[M['AIRCRAFT_ID'].value].append(mag_norm_inv)
+							ret_dict[M['AIRCRAFT_ID'].value].append(mag_norm_inv_diff)
+
 						else:
 							print('AIRCRAFT_ID not found in file %s' % datafilename)
 	return ret_list, ret_dict
@@ -753,6 +823,48 @@ def stat_mag_cal(cal_list, cal_dict):
 
 	return ret_offset, ret_scale, ret_off_diag
 
+def stat_mag_cal_median(cal_list, cal_dict):
+	mag_x_off = get_field('CAL_MAG0_XOFF', cal_list, cal_dict)
+	mag_y_off = get_field('CAL_MAG0_YOFF', cal_list, cal_dict)
+	mag_z_off = get_field('CAL_MAG0_ZOFF', cal_list, cal_dict)
+	
+	mag_x_scale = get_field('CAL_MAG0_XSCALE', cal_list, cal_dict)
+	mag_y_scale = get_field('CAL_MAG0_YSCALE', cal_list, cal_dict)
+	mag_z_scale = get_field('CAL_MAG0_ZSCALE', cal_list, cal_dict)
+	
+	mag_x_off_diag = get_field('CAL_MAG0_ODX', cal_list, cal_dict)
+	mag_y_off_diag = get_field('CAL_MAG0_ODY', cal_list, cal_dict)
+	mag_z_off_diag = get_field('CAL_MAG0_ODZ', cal_list, cal_dict)
+
+	median_mx_off = np.median(mag_x_off)
+	std_mx_off = np.std(mag_x_off)
+	median_my_off = np.median(mag_y_off)
+	std_my_off = np.std(mag_y_off)
+	median_mz_off = np.median(mag_z_off)
+	std_mz_off = np.std(mag_z_off)
+
+	ret_offset = [median_mx_off, std_mx_off, median_my_off, std_my_off, median_mz_off, std_mz_off]
+
+	median_mx_scale = np.median(mag_x_scale)
+	std_mx_scale = np.std(mag_x_scale)
+	median_my_scale = np.median(mag_y_scale)
+	std_my_scale = np.std(mag_y_scale)
+	median_mz_scale = np.median(mag_z_scale)
+	std_mz_scale = np.std(mag_z_scale)
+
+	ret_scale = [median_mx_scale, std_mx_scale, median_my_scale, std_my_scale, median_mz_scale, std_mz_scale]
+
+	median_mx_off_diag = np.median(mag_x_off_diag)
+	std_mx_off_diag = np.std(mag_x_off_diag)
+	median_my_off_diag = np.median(mag_y_off_diag)
+	std_my_off_diag = np.std(mag_y_off_diag)
+	median_mz_off_diag = np.median(mag_z_off_diag)
+	std_mz_off_diag = np.std(mag_z_off_diag)
+
+	ret_off_diag = [median_mx_off_diag, std_mx_off_diag, median_my_off_diag, std_my_off_diag, median_mz_off_diag, std_mz_off_diag]
+
+	return ret_offset, ret_scale, ret_off_diag
+
 if __name__ == "__main__":
 	if len(sys.argv) < 2:
 		print("Usage: python mag_analysis.py <log.hdf5>\n")
@@ -760,4 +872,17 @@ if __name__ == "__main__":
 
 	cal_list, cal_dict = main(sys.argv[1])
 	ret_offset, ret_scale, ret_off_diag = stat_mag_cal(cal_list, cal_dict)
-	ret_list, ret_dict = inverse_cal(sys.argv[1])
+	stat_dict = {}
+	stat_dict['x_offset'] = ret_offset[0]
+	stat_dict['y_offset'] = ret_offset[2]
+	stat_dict['z_offset'] = ret_offset[4]
+
+	stat_dict['x_scale'] = ret_scale[0]
+	stat_dict['y_scale'] = ret_scale[2]
+	stat_dict['z_scale'] = ret_scale[4]
+
+	stat_dict['x_off_diag'] = ret_off_diag[0]
+	stat_dict['y_off_diag'] = ret_off_diag[2]
+	stat_dict['z_off_diag'] = ret_off_diag[4]
+	
+	ret_list, ret_dict = inverse_cal(sys.argv[1], stat_dict)
