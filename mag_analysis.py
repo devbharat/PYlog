@@ -20,6 +20,18 @@ from scipy import signal, misc
 from numpy.linalg import inv
 
 
+# std of mag cal params when calibrated on different planes
+STD_ODX = 0.001163822645
+STD_ODY = 0.000434647602
+STD_ODZ = 0.0003875821286
+STD_XOFF = 0.005173193674
+STD_XSCALE = 0.0026173885
+STD_YOFF = 0.007996220625
+STD_YSCALE = 0.002757356951
+STD_ZOFF = 0.006234065088
+STD_ZSCALE = 0.003135489186
+
+
 
 import struct, sys
 
@@ -710,7 +722,7 @@ def inverse_cal(root_dir, stat_dict):
 										break
 
 							mag_norm_orig = np.sqrt(IMU_MagX**2 + IMU_MagY**2 + IMU_MagZ**2)
-							mag_norm_orig_diff = np.max(mag_norm_orig) - np.min(mag_norm_orig)
+							mag_norm_orig_diff = np.quantile(mag_norm_orig, 0.95) - np.quantile(mag_norm_orig, 0.05)
 							if mag_norm_orig_diff > 2:
 								break
 							# print(mag_norm_orig_diff)
@@ -729,13 +741,29 @@ def inverse_cal(root_dir, stat_dict):
 							mag_y_raw = np.array(mag_raw_meas[1, :])[0]
 							mag_z_raw = np.array(mag_raw_meas[2, :])[0]
 							mag_norm_raw = np.sqrt(mag_x_raw**2 + mag_y_raw**2 + mag_z_raw**2)
-							mag_norm_raw_diff = np.max(mag_norm_raw) - np.min(mag_norm_raw)
+							mag_norm_raw_diff = np.quantile(mag_norm_raw, 0.95) - np.quantile(mag_norm_raw, 0.05)
 
 
 							#  prepare mean matrix
-							mat_cal_stat = np.array([[stat_dict['x_scale'], stat_dict['x_off_diag'], stat_dict['y_off_diag']], [stat_dict['x_off_diag'], stat_dict['y_scale'], stat_dict['z_off_diag']], [stat_dict['y_off_diag'], stat_dict['z_off_diag'], stat_dict['z_scale']]])
+							#real# mat_cal_stat = np.array([[stat_dict['x_scale'], stat_dict['x_off_diag'], stat_dict['y_off_diag']], [stat_dict['x_off_diag'], stat_dict['y_scale'], stat_dict['z_off_diag']], [stat_dict['y_off_diag'], stat_dict['z_off_diag'], stat_dict['z_scale']]])
 							# mat_cal_stat = np.array([[x_scale_orig, stat_dict['x_off_diag'], stat_dict['y_off_diag']], [stat_dict['x_off_diag'], y_scale_orig, stat_dict['z_off_diag']], [stat_dict['y_off_diag'], stat_dict['z_off_diag'], z_scale_orig]])
-							off_cal_stat = np.matrix([stat_dict['x_offset'], stat_dict['y_offset'], stat_dict['z_offset']]).transpose()
+							#real# off_cal_stat = np.matrix([stat_dict['x_offset'], stat_dict['y_offset'], stat_dict['z_offset']]).transpose()
+
+							# prepare rand matrx
+							x_off_orig_rand = np.random.normal(x_off_orig, STD_XOFF)
+							y_off_orig_rand = np.random.normal(y_off_orig, STD_YOFF)
+							z_off_orig_rand = np.random.normal(z_off_orig, STD_ZOFF)
+
+							x_scale_orig_rand = np.random.normal(x_scale_orig, STD_XSCALE)
+							y_scale_orig_rand = np.random.normal(y_scale_orig, STD_YSCALE)
+							z_scale_orig_rand = np.random.normal(z_scale_orig, STD_ZSCALE)
+
+							x_off_diag_orig_rand = np.random.normal(x_off_diag_orig, STD_ODX)
+							y_off_diag_orig_rand = np.random.normal(y_off_diag_orig, STD_ODY)
+							z_off_diag_orig_rand = np.random.normal(z_off_diag_orig, STD_ODZ)
+
+							mat_cal_stat = np.array([[x_scale_orig_rand, x_off_diag_orig_rand, y_off_diag_orig_rand], [x_off_diag_orig_rand, y_scale_orig_rand, z_off_diag_orig_rand], [y_off_diag_orig_rand, z_off_diag_orig_rand, z_scale_orig_rand]])
+							off_cal_stat = np.matrix([x_off_orig_rand, y_off_orig_rand, z_off_orig_rand]).transpose()
 
 							# get inverse calculated measurements
 							mag_inv_meas = np.matrix(np.zeros(mag_meas.shape))
@@ -752,7 +780,7 @@ def inverse_cal(root_dir, stat_dict):
 							mag_y_inv = np.array(mag_inv_meas[1, :])[0]
 							mag_z_inv = np.array(mag_inv_meas[2, :])[0]
 							mag_norm_inv = np.sqrt(mag_x_inv**2 + mag_y_inv**2 + mag_z_inv**2)
-							mag_norm_inv_diff = np.max(mag_norm_inv) - np.min(mag_norm_inv)
+							mag_norm_inv_diff = np.quantile(mag_norm_inv, 0.95) - np.quantile(mag_norm_inv, 0.05)
 
 
 						except Exception as e:

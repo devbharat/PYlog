@@ -170,7 +170,7 @@ if __name__ == "__main__":
 		datafilenameList = []
 		logfilenameList = []
 		processes = []
-		poo = mp.Pool(processes=3,maxtasksperchild=10)
+		poo = mp.Pool(processes=7,maxtasksperchild=10)
 		# is directory, look for all files inside it
 		for root, dirs, files in os.walk(sys.argv[1]):
 			for file in files:
@@ -183,9 +183,10 @@ if __name__ == "__main__":
 					if (os.path.isfile(datafilename)):
 						pass
 					else:
-						datafilenameList.append(datafilename)
-						logfilenameList.append(logfilename)
-						#poo.apply(procS, (logfilename,))
+						if (os.stat(logfilename).st_size > 1000000.0): # > 1MB
+							datafilenameList.append(datafilename)
+							logfilenameList.append(logfilename)
+							poo.apply_async(procS, (logfilename,))
 		"""
 		for i in range(len(logfilenameList)):
 			processes.append(mp.Process(target=procS, args=(logfilenameList[i],)))
@@ -198,7 +199,7 @@ if __name__ == "__main__":
 		for p in processes:
 			p.join()
 		"""
-		poo.map(procS, logfilenameList)
+		# poo.map(procS, logfilenameList)
 		poo.close()
 		poo.join()
 
